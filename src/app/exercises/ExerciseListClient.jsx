@@ -2,6 +2,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { EXERCISES, MUSCLE_GROUPS, MUSCLE_ACCENTS } from '../../data/exercises'
 
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
+
 /* ─── Filter icon (funnel) SVG ─────────────────────────────────────────── */
 function FilterIcon({ size = 16, color = 'currentColor' }) {
   return (
@@ -41,12 +43,9 @@ function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onC
           return (
             <button key={opt} onClick={() => onToggle(opt)} style={{
               fontFamily: 'var(--font-mono)', fontSize: 10, padding: '5px 10px',
-              borderRadius: 'var(--radius-sm)',
-              background: isOn ? color : 'var(--bg3)',
-              color: isOn ? '#000' : 'var(--text4)',
-              border: `1px solid ${isOn ? color : 'var(--border)'}`,
-              cursor: 'pointer', transition: 'all 0.15s',
-              fontWeight: isOn ? 700 : 400,
+              borderRadius: 'var(--radius-sm)', background: isOn ? color : 'var(--bg3)',
+              color: isOn ? '#000' : 'var(--text4)', border: `1px solid ${isOn ? color : 'var(--border)'}`,
+              cursor: 'pointer', transition: 'all 0.15s', fontWeight: isOn ? 700 : 400,
             }}>
               {opt.toUpperCase()}
             </button>
@@ -58,20 +57,14 @@ function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onC
 
   return (
     <>
-      {/* Backdrop */}
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 99, backdropFilter: 'blur(2px)' }} />
-      {/* Drawer */}
       <div ref={drawerRef} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: 'var(--bg2)', borderTop: '1px solid var(--border2)',
-        borderRadius: '16px 16px 0 0',
-        padding: '0 20px 32px', zIndex: 100,
-        maxWidth: 640, margin: '0 auto',
-        animation: 'slideUp 0.25s ease',
+        borderRadius: '16px 16px 0 0', padding: '0 20px 32px', zIndex: 100,
+        maxWidth: 640, margin: '0 auto', animation: 'slideUp 0.25s ease',
       }}>
-        {/* Handle */}
         <div style={{ margin: '12px auto 18px', width: 36, height: 4, background: 'var(--border2)', borderRadius: 2 }} />
-
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <FilterIcon size={16} color="var(--text)" />
@@ -102,42 +95,39 @@ function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onC
   )
 }
 
-/* ─── Active filter pill ────────────────────────────────────────────────── */
 function Pill({ label, color, onRemove }) {
   return (
     <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '3px 8px', borderRadius: 20,
-      background: color + '22', border: `1px solid ${color}55`,
-      fontFamily: 'var(--font-mono)', fontSize: 10, color: color,
+      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20,
+      background: color + '22', border: `1px solid ${color}55`, fontFamily: 'var(--font-mono)', fontSize: 10, color: color,
     }}>
       {label.toUpperCase()}
-      <button onClick={onRemove} style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        color: color, fontSize: 12, lineHeight: 1, padding: 0,
-      }}>✕</button>
+      <button onClick={onRemove} style={{ background: 'none', border: 'none', cursor: 'pointer', color: color, fontSize: 12, lineHeight: 1, padding: 0 }}>✕</button>
     </div>
   )
 }
 
 /* ─── Exercise Card ──────────────────────────────────────────────────────── */
-function ExerciseCard({ ex, accent }) {
+function ExerciseCard({ ex, accent, onEdit, onDelete }) {
   const [open, setOpen] = useState(false)
   return (
     <div className={`ex-card ${open ? 'open' : ''}`} style={{ '--accent': accent }}>
       <div className="ex-head" onClick={() => setOpen(o => !o)}>
         <div style={{ flex: 1 }}>
           <div className="ex-badges" style={{ marginBottom: 5 }}>
-            <span className="badge" style={{ background: TYPE_DIM[ex.type] || 'var(--bg3)', color: TYPE_COLOR[ex.type], border: `1px solid ${TYPE_COLOR[ex.type]}` , borderWidth: 0, outlineOffset: 0 }}>
-              {ex.type?.toUpperCase()}
-            </span>
-            {ex.emgNote && (
-              <span className="badge" style={{ background: EMG_DIM[ex.emgNote] || 'var(--bg3)', color: EMG_COLOR[ex.emgNote] || 'var(--text3)', border: 'none' }}>
-                {ex.emgNote}
+            {ex.badge === 'CUSTOM' && (
+              <span className="badge badge-custom">CUSTOM</span>
+            )}
+            {ex.type && (
+              <span className="badge" style={{ background: TYPE_DIM[ex.type] || 'var(--bg3)', color: TYPE_COLOR[ex.type], border: `1px solid ${TYPE_COLOR[ex.type]}`, borderWidth: 0 }}>
+                {ex.type.toUpperCase()}
               </span>
             )}
+            {ex.emgNote && <span className="badge" style={{ background: EMG_DIM[ex.emgNote] || 'var(--bg3)', color: EMG_COLOR[ex.emgNote] || 'var(--text3)', border: 'none' }}>{ex.emgNote}</span>}
           </div>
-          <div className="ex-name">{ex.name}</div>
+          <div className="ex-name" style={{ color: ex.badge === 'CUSTOM' ? 'var(--purple)' : 'var(--text)' }}>
+            {ex.name}
+          </div>
           <div className="ex-targets">{ex.targets}</div>
           {ex.secondary && <div className="ex-targets" style={{ color: 'var(--text5)', marginTop: 2 }}>Also: {ex.secondary}</div>}
         </div>
@@ -148,17 +138,19 @@ function ExerciseCard({ ex, accent }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
             <div style={{ padding: '8px 12px', background: 'var(--bg)', borderRadius: 'var(--radius-sm)' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 4 }}>REP RANGE</div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: accent }}>{ex.repRange}</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: accent }}>{ex.repRange || '8–12'}</div>
             </div>
             <div style={{ padding: '8px 12px', background: 'var(--bg)', borderRadius: 'var(--radius-sm)' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 4 }}>REST</div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: accent }}>{ex.restRange || '60–90s'}</div>
             </div>
           </div>
-          <div className="sci-box" style={{ borderLeftColor: accent }}>
-            <div className="sci-label" style={{ color: accent }}>⚗ SCIENCE</div>
-            <p>{ex.sciNote}</p>
-          </div>
+          {ex.sciNote && (
+            <div className="sci-box" style={{ borderLeftColor: accent }}>
+              <div className="sci-label" style={{ color: accent }}>⚗ SCIENCE</div>
+              <p>{ex.sciNote}</p>
+            </div>
+          )}
           {ex.cues && ex.cues.length > 0 && (
             <div style={{ marginTop: 10 }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 6 }}>TECHNIQUE CUES</div>
@@ -172,35 +164,157 @@ function ExerciseCard({ ex, accent }) {
               </div>
             </div>
           )}
+
+          {ex.badge === 'CUSTOM' && (
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+              <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={(e) => { e.stopPropagation(); onEdit(ex) }}>Edit</button>
+              <button className="btn btn-danger btn-sm" style={{ flex: 1 }} onClick={(e) => { e.stopPropagation(); onDelete(ex.id) }}>Delete</button>
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+function CreateCustomModal({ initialData, onSave, onClose }) {
+  const [name, setName] = useState(initialData?.name || '')
+  const [muscleGroup, setMuscleGroup] = useState(initialData?.muscleGroup || 'Chest')
+  const [targets, setTargets] = useState(initialData?.targets || '')
+  const [cues, setCues] = useState(initialData?.cues?.join(', ') || '')
+  const [repRange, setRepRange] = useState(initialData?.repRange || '8-12')
+  const [restRange, setRestRange] = useState(initialData?.restRange || '90s')
+  const [type, setType] = useState(initialData?.type || 'isolation')
+
+  function handleSave() {
+    if (!name.trim()) return
+    onSave({
+      id: initialData?.id || genId(), name: name.trim(), muscleGroup, targets: targets.trim(),
+      badge: 'CUSTOM', cues: cues ? cues.split(',').map(c => c.trim()).filter(Boolean) : [],
+      repRange, restRange, type
+    })
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ '--accent': MUSCLE_ACCENTS[muscleGroup] || 'var(--purple)' }}>
+        <div className="modal-title" style={{ color: 'var(--accent)' }}>{initialData ? 'Edit' : 'Create'} Custom Exercise</div>
+        <div className="form-group">
+          <label className="form-label">Exercise Name</label>
+          <input className="form-input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. My Custom Row" autoFocus />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Primary Muscle Group</label>
+          <select className="form-select" value={muscleGroup} onChange={e => setMuscleGroup(e.target.value)}>
+            {MUSCLE_GROUPS.filter(g => g !== 'All').map(g => <option key={g}>{g}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Specific Target Muscles (optional)</label>
+          <input className="form-input" value={targets} onChange={e => setTargets(e.target.value)} placeholder="e.g. Lats, Rear Delts" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Form Cues (comma separated)</label>
+          <input className="form-input" value={cues} onChange={e => setCues(e.target.value)} placeholder="e.g. pull to hip, slow negative" />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Rep Range</label>
+            <input className="form-input" value={repRange} onChange={e => setRepRange(e.target.value)} placeholder="e.g. 8-12" />
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Rest Range</label>
+            <input className="form-input" value={restRange} onChange={e => setRestRange(e.target.value)} placeholder="e.g. 90s, 2-3 min" />
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Exercise Type</label>
+          <select className="form-select" value={type} onChange={e => setType(e.target.value)}>
+            <option value="compound">Compound</option>
+            <option value="isolation">Isolation</option>
+          </select>
+        </div>
+        <div className="modal-actions">
+          <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim()}>Save Exercise</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Main Page ─────────────────────────────────────────────────────────── */
 export default function ExerciseList() {
+  const [allExercises, setAllExercises] = useState([...EXERCISES])
+  
+  // Re-sync if EXERCISES changes (like from Fast Refresh after an HTTP post)
+  useEffect(() => {
+    setAllExercises([...EXERCISES].sort((a,b) => a.name.localeCompare(b.name)))
+  }, [EXERCISES])
+
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editingEx, setEditingEx] = useState(null) // null | false | Exercise Object
+  
   const [activeMuscles, setActiveMuscles] = useState([])
   const [activeTypes, setActiveTypes] = useState([])
   const [activeEmgs, setActiveEmgs] = useState([])
 
+  const handleSaveCustom = async (newEx) => {
+    const isEdit = allExercises.some(e => e.id === newEx.id)
+    const customOnly = allExercises.filter(e => e.badge === 'CUSTOM')
+    
+    let updatedCustom
+    if (isEdit) updatedCustom = customOnly.map(c => c.id === newEx.id ? newEx : c)
+    else updatedCustom = [...customOnly, newEx]
+    
+    // Optimistic UI update
+    setAllExercises(prev => {
+      const builtins = prev.filter(e => e.badge !== 'CUSTOM')
+      return [...builtins, ...updatedCustom].sort((a,b) => a.name.localeCompare(b.name))
+    })
+    
+    setEditingEx(null)
+
+    // Save directly to backend file!
+    try {
+      await fetch('/api/custom-exercises', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exercises: updatedCustom })
+      })
+    } catch {}
+  }
+
+  const handleDeleteCustom = async (exId) => {
+    if (!confirm('Permanently delete this custom exercise? It will be removed from the internal file.')) return
+    const customOnly = allExercises.filter(e => e.badge === 'CUSTOM' && e.id !== exId)
+    
+    // Optimistic UI update
+    setAllExercises(prev => prev.filter(e => e.id !== exId))
+    
+    // Save directly to backend file!
+    try {
+      await fetch('/api/custom-exercises', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exercises: customOnly })
+      })
+    } catch {}
+  }
+
   const totalActive = activeMuscles.length + activeTypes.length + activeEmgs.length
 
   const filtered = useMemo(() => {
-    return EXERCISES.filter(ex => {
+    return allExercises.filter(ex => {
       const matchMuscle = activeMuscles.length === 0 || activeMuscles.includes(ex.muscleGroup)
-      const matchType = activeTypes.length === 0 || activeTypes.includes(ex.type)
+      const matchType = activeTypes.length === 0 || activeTypes.includes(ex.type) || (activeTypes.length === 0 && ex.badge === 'CUSTOM')
       const matchEmg = activeEmgs.length === 0 || activeEmgs.includes(ex.emgNote)
-      const matchSearch = !search ||
-        ex.name.toLowerCase().includes(search.toLowerCase()) ||
-        ex.targets.toLowerCase().includes(search.toLowerCase())
+      const matchSearch = !search || ex.name.toLowerCase().includes(search.toLowerCase()) || (ex.targets && ex.targets.toLowerCase().includes(search.toLowerCase()))
       return matchMuscle && matchType && matchEmg && matchSearch
     })
-  }, [activeMuscles, activeTypes, activeEmgs, search])
+  }, [allExercises, activeMuscles, activeTypes, activeEmgs, search])
 
-  // Group by muscle when no muscle filter active
   const grouped = useMemo(() => {
     if (activeMuscles.length === 1) return { [activeMuscles[0]]: filtered }
     return filtered.reduce((acc, ex) => {
@@ -210,7 +324,6 @@ export default function ExerciseList() {
     }, {})
   }, [activeMuscles, filtered])
 
-  // Active pills data
   const pills = [
     ...activeMuscles.map(v => ({ label: v, color: MUSCLE_ACCENTS[v] || 'var(--gold)', removeFrom: setActiveMuscles })),
     ...activeTypes.map(v => ({ label: v, color: TYPE_COLOR[v], removeFrom: setActiveTypes })),
@@ -219,129 +332,62 @@ export default function ExerciseList() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <div className="page-title" style={{ color: 'var(--blue)' }}>EXERCISE LIBRARY</div>
-        <div className="page-subtitle">
-          {EXERCISES.length} exercises · EMG classification · stretch-loading science
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div className="page-title" style={{ color: 'var(--blue)' }}>EXERCISE LIBRARY</div>
+          <div className="page-subtitle">{allExercises.length} exercises · EMG classification · stretch-loading science</div>
         </div>
-      </div>
-
-      {/* Search + Filter row */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-        <input
-          className="search-bar"
-          style={{ flex: 1, marginBottom: 0 }}
-          placeholder="Search exercises…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <button
-          onClick={() => setDrawerOpen(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '0 14px', height: 42, borderRadius: 'var(--radius-sm)',
-            background: totalActive > 0 ? 'var(--gold)' : 'var(--bg2)',
-            border: `1px solid ${totalActive > 0 ? 'var(--gold)' : 'var(--border)'}`,
-            color: totalActive > 0 ? '#000' : 'var(--text3)',
-            cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s',
-            fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: totalActive > 0 ? 700 : 400,
-          }}
-        >
-          <FilterIcon size={15} color={totalActive > 0 ? '#000' : 'var(--text3)'} />
-          Filter
-          {totalActive > 0 && (
-            <span style={{
-              minWidth: 18, height: 18, borderRadius: 9,
-              background: '#000', color: 'var(--gold)',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10, fontWeight: 800, marginLeft: 2,
-            }}>{totalActive}</span>
-          )}
+        <button className="btn btn-outline" style={{ flexShrink: 0, padding: '6px 10px', fontSize: 11, borderColor: 'var(--purple)', color: 'var(--purple)' }} onClick={() => setEditingEx(false)}>
+          + Custom
         </button>
       </div>
 
-      {/* Active filter pills */}
-      {pills.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-          {pills.map((p, i) => (
-            <Pill key={i} label={p.label} color={p.color}
-              onRemove={() => p.removeFrom(prev => prev.filter(v => v !== p.label))} />
-          ))}
-          {totalActive > 1 && (
-            <button onClick={() => { setActiveMuscles([]); setActiveTypes([]); setActiveEmgs([]) }}
-              style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '0 4px' }}>
-              clear all
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Results count */}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.08em', marginBottom: 14 }}>
-        {filtered.length} of {EXERCISES.length} exercises
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+        <input className="search-bar" style={{ flex: 1, marginBottom: 0 }} placeholder="Search exercises（including Custom）…" value={search} onChange={e => setSearch(e.target.value)} />
+        <button onClick={() => setDrawerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: 42, borderRadius: 'var(--radius-sm)', background: totalActive > 0 ? 'var(--gold)' : 'var(--bg2)', border: `1px solid ${totalActive > 0 ? 'var(--gold)' : 'var(--border)'}`, color: totalActive > 0 ? '#000' : 'var(--text3)', cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: totalActive > 0 ? 700 : 400 }}>
+          <FilterIcon size={15} color={totalActive > 0 ? '#000' : 'var(--text3)'} />
+          {totalActive > 0 ? `FILTERS (${totalActive})` : 'FILTER'}
+        </button>
       </div>
 
-      {/* Exercise list */}
-      {filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">🔍</div>
-          <div className="empty-title">No exercises found</div>
-          <div className="empty-sub">Try adjusting your filters or search.</div>
-          <button className="btn btn-outline" onClick={() => { setActiveMuscles([]); setActiveTypes([]); setActiveEmgs([]); setSearch('') }}>
-            Reset all
-          </button>
+      {pills.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+          {pills.map((p, i) => <Pill key={i} label={p.label} color={p.color} onRemove={() => p.removeFrom(prev => prev.filter(v => v !== p.label))} />)}
         </div>
-      ) : (
-        Object.entries(grouped).map(([group, exercises]) => (
-          <div key={group} style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 900, color: MUSCLE_ACCENTS[group] || 'var(--gold)', letterSpacing: 0.5 }}>
-                {group.toUpperCase()}
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.08em' }}>
-                {exercises.length}
-              </div>
-            </div>
-            <div className="ex-list">
-              {exercises.map(ex => (
-                <ExerciseCard key={ex.id} ex={ex} accent={MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--blue)'} />
-              ))}
-            </div>
+      )}
+
+      {editingEx !== null && <CreateCustomModal initialData={editingEx || null} onSave={handleSaveCustom} onClose={() => setEditingEx(null)} />}
+      {drawerOpen && <FilterDrawer muscles={activeMuscles} types={activeTypes} emgs={activeEmgs} setMuscles={setActiveMuscles} setTypes={setActiveTypes} setEmgs={setActiveEmgs} onClose={() => setDrawerOpen(false)} />}
+
+      <div className="ex-list">
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔍</div>
+            <div className="empty-title">No matches found</div>
+            <div className="empty-sub">Try a different search or clear filters.</div>
           </div>
-        ))
-      )}
-
-      {/* Filter drawer */}
-      {drawerOpen && (
-        <FilterDrawer
-          muscles={activeMuscles} types={activeTypes} emgs={activeEmgs}
-          setMuscles={setActiveMuscles} setTypes={setActiveTypes} setEmgs={setActiveEmgs}
-          onClose={() => setDrawerOpen(false)}
-        />
-      )}
-
-      {/* Legend */}
-      <div style={{ marginTop: 32, padding: '14px 16px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 10 }}>LEGEND</div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 6 }}>
-          {Object.entries(EMG_COLOR).map(([k, c]) => (
-            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text4)' }}>{k}</span>
+        ) : (
+          Object.keys(grouped).sort((a,b) => a.localeCompare(b)).map(group => (
+            <div key={group} style={{ marginBottom: 24 }}>
+              <div className="section-header" style={{ marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 500, color: MUSCLE_ACCENTS[group] || 'var(--text3)', letterSpacing: '0.15em' }}>
+                  {group.toUpperCase()}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)' }}>{grouped[group].length} EXC</div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {grouped[group].map((ex, i) => (
+                  <ExerciseCard key={ex.id || i} ex={ex} accent={MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)'} onEdit={setEditingEx} onDelete={handleDeleteCustom} />
+                ))}
+              </div>
             </div>
-          ))}
-          {Object.entries(TYPE_COLOR).map(([k, c]) => (
-            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{ width: 8, height: 8, borderRadius: 2, background: c }} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text4)' }}>{k.toUpperCase()}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--text5)', lineHeight: 1.6 }}>
-          STRETCH-LOADED = ~2× hypertrophy at lengthened positions (Maeo et al. 2021). CONSTANT TENSION = cable maintains load through full ROM (Calatayud et al. 2015).
-        </div>
+          ))
+        )}
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 20, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)' }}>
+        {filtered.length} of {allExercises.length} exercises
       </div>
     </div>
   )
 }
-

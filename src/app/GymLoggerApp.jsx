@@ -5,12 +5,14 @@ import ExerciseList from './exercises/ExerciseListClient'
 import TrackProgress from './progress/TrackProgressClient'
 import LogSession from './log/LogSessionClient'
 import Science from './science/ScienceClient'
+import Tools from './tools/ToolsClient'
 
 const TABS = [
   { id: 'plan',      label: 'My Plan',       icon: '📋', accent: '--gold' },
   { id: 'exercises', label: 'Exercise List',  icon: '🏋', accent: '--blue' },
   { id: 'progress',  label: 'Track Progress', icon: '📈', accent: '--green' },
   { id: 'log',       label: 'Log Session',    icon: '⚡', accent: '--red' },
+  { id: 'tools',     label: 'Tools',          icon: '🛠️', accent: '--teal' },
   { id: 'science',   label: 'Science',        icon: '🔬', accent: '--purple' },
 ]
 
@@ -67,7 +69,9 @@ export default function GymLoggerApp() {
         <div className="global-header-top">
           <div>
             <h1>SHAKTIVAAN</h1>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.15em', marginTop: 2 }}>YOUR SCIENCE BACKED GYM LOGGER</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.15em', marginTop: 2 }}>
+              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()} · YOUR SCIENCE BACKED GYM LOGGER
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {streak > 0 && (
@@ -106,6 +110,7 @@ export default function GymLoggerApp() {
         {tab === 'log'       && <LogSession onSessionSaved={() => {
           try { setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')) } catch {}
         }} />}
+        {tab === 'tools'     && <Tools />}
         {tab === 'science'   && <Science />}
       </main>
     </div>

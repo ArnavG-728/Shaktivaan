@@ -627,6 +627,9 @@ export const EXERCISES = [
     sciNote: 'The bird dog trains anti-rotation and anti-extension simultaneously — the two most important core stability qualities per McGill (2002) Low Back Disorders. The contralateral arm-leg extension creates a rotational moment that the deep stabilisers (multifidus, transverse abdominis) must cancel. EMG shows multifidus activation comparable to deadlifts at a fraction of compressive load — making bird dogs the ideal daily injury prevention and warm-up drill.',
     cues: ['Extend opposite arm and leg', 'Maintain a neutral spine', 'Control the movement'],
   },
+  // --- CUSTOM EXERCISES START ---
+
+  // --- CUSTOM EXERCISES END ---
 ]
 
 export const MUSCLE_GROUPS = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Core']

@@ -431,23 +431,33 @@ body {
 }
 
 .badge-strength {
-  background: #1a150d;
+  background: var(--gold-dim);
   color: var(--gold);
 }
 
 .badge-vtaper {
-  background: #0d1a12;
+  background: var(--green-dim);
   color: var(--green);
 }
 
 .badge-peak {
-  background: #0d1219;
+  background: var(--blue-dim);
   color: var(--blue);
 }
 
 .badge-burn {
-  background: #1a0d0d;
+  background: var(--red-dim);
   color: var(--red);
+}
+
+.badge-custom {
+  background: var(--purple-dim);
+  color: var(--purple);
+}
+
+.badge-emg {
+  background: var(--bg3);
+  color: var(--text4);
 }
 
 .badge-compound {
