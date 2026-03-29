@@ -1,0 +1,17 @@
+{
+  "name": "Shaktivaan Gym Logger",
+  "short_name": "Shaktivaan",
+  "description": "Scientific lifting and programming app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,8 +1,21 @@
 import './globals.css'
 
+export const viewport = {
+  themeColor: '#111111',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata = {
   title: 'Shaktivaan',
   description: 'Your science backed gym logger — progressive overload, EMG data, and peer-reviewed training principles.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Shaktivaan',
+  },
 }
 
 export default function RootLayout({ children }) {
@@ -23,7 +36,20 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
+      </body>
     </html>
   )
 }
