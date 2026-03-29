@@ -22,7 +22,7 @@ function formatDuration(ms) {
 }
 
 function computeTonnage(sets) {
-  return sets.filter(s => s.done).reduce((sum, s) => sum + (parseFloat(s.weight)||0) * (parseFloat(s.reps)||0), 0)
+  return sets.filter(s => s.done).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0)
 }
 
 function getTrend(values) {
@@ -89,7 +89,7 @@ export default function TrackProgress() {
   useEffect(() => {
     try {
       setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
-    } catch {}
+    } catch { }
   }, [])
 
   // All unique exercise names from history
@@ -110,7 +110,7 @@ export default function TrackProgress() {
       .filter(s => s.sets?.some(set => set.exerciseName === activeEx && set.done))
       .map(s => {
         const sets = s.sets.filter(set => set.exerciseName === activeEx && set.done)
-        const best = Math.max(...sets.map(set => epley(parseFloat(set.weight)||0, parseFloat(set.reps)||0)))
+        const best = Math.max(...sets.map(set => epley(parseFloat(set.weight) || 0, parseFloat(set.reps) || 0)))
         return { date: formatDate(s.date), '1RM': best }
       })
   }, [activeEx, sessions])
@@ -119,7 +119,7 @@ export default function TrackProgress() {
   const weeklyVolume = useMemo(() => {
     if (sessions.length === 0) return []
     const now = new Date()
-    const weekAgo = new Date(now - 7*24*60*60*1000)
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
     const recentSets = sessions
       .filter(s => new Date(s.date) >= weekAgo)
       .flatMap(s => s.sets?.filter(set => set.done) || [])
@@ -144,11 +144,11 @@ export default function TrackProgress() {
   // Weekly summary stats
   const stats = useMemo(() => {
     const now = new Date()
-    const weekAgo = new Date(now - 7*24*60*60*1000)
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
     const thisWeekSessions = sessions.filter(s => new Date(s.date) >= weekAgo)
     const totalTonnage = sessions.reduce((sum, s) => sum + (s.totalTonnage || 0), 0)
     const allSets = sessions.flatMap(s => s.sets?.filter(set => set.done) || [])
-    const allOneRMs = allSets.map(s => epley(parseFloat(s.weight)||0, parseFloat(s.reps)||0)).filter(Boolean)
+    const allOneRMs = allSets.map(s => epley(parseFloat(s.weight) || 0, parseFloat(s.reps) || 0)).filter(Boolean)
     const bestOneRM = allOneRMs.length ? Math.max(...allOneRMs) : 0
 
     return {
@@ -164,17 +164,17 @@ export default function TrackProgress() {
     const records = {}
     sessions.forEach(s => {
       s.sets?.filter(set => set.done).forEach(set => {
-        const rm = epley(parseFloat(set.weight)||0, parseFloat(set.reps)||0)
+        const rm = epley(parseFloat(set.weight) || 0, parseFloat(set.reps) || 0)
         if (!records[set.exerciseName] || rm > records[set.exerciseName].value) {
           records[set.exerciseName] = { value: rm, date: s.date, weight: set.weight, reps: set.reps }
         }
       })
     })
-    return Object.entries(records).sort((a,b) => b[1].value - a[1].value).slice(0,10)
+    return Object.entries(records).sort((a, b) => b[1].value - a[1].value).slice(0, 10)
   }, [sessions])
 
   const sortedSessions = useMemo(() =>
-    [...sessions].sort((a,b) => new Date(b.date) - new Date(a.date)), [sessions])
+    [...sessions].sort((a, b) => new Date(b.date) - new Date(a.date)), [sessions])
 
   if (sessions.length === 0) {
     return (
@@ -194,10 +194,10 @@ export default function TrackProgress() {
         <div className="dash-panel" style={{ marginTop: 20 }}>
           <div className="dash-panel-title">Volume Targets — Schoenfeld et al. (2017)</div>
           <div className="dash-panel-sub">MEV = Minimum Effective Volume (10 sets/muscle/week). MAV = Maximum Adaptive Volume (~20 sets).</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {Object.entries(MEV).map(([muscle, mev]) => (
               <div key={muscle} style={{ padding: '8px 10px', background: 'var(--bg3)', borderRadius: 'var(--radius-sm)' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.08em', marginBottom: 3 }}>{muscle.toUpperCase()}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text6)', letterSpacing: '0.08em', marginBottom: 3 }}>{muscle.toUpperCase()}</div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: MUSCLE_COLORS[muscle] }}>
                   MEV {mev} — MAV {MAV[muscle]}
                 </div>
@@ -254,7 +254,7 @@ export default function TrackProgress() {
                 style={{ '--accent': 'var(--green)', fontSize: 11 }}
                 onClick={() => setActiveEx(name)}
               >
-                {name.split(' ').slice(0,3).join(' ')}
+                {name.split(' ').slice(0, 3).join(' ')}
               </button>
             ))}
           </div>
@@ -302,7 +302,7 @@ export default function TrackProgress() {
               <XAxis dataKey="muscle" tick={{ fill: 'var(--text5)', fontSize: 9, fontFamily: 'DM Mono' }} />
               <YAxis tick={{ fill: 'var(--text5)', fontSize: 9, fontFamily: 'DM Mono' }} />
               <Tooltip content={<CustomTooltip />} formatter={(v, n, p) => [v + ' sets', p.payload.fullName]} />
-              <Bar dataKey="sets" name="Sets" radius={[3,3,0,0]}>
+              <Bar dataKey="sets" name="Sets" radius={[3, 3, 0, 0]}>
                 {weeklyVolume.map((entry, i) => (
                   <Cell key={i}
                     fill={entry.sets >= entry.mev && entry.sets <= entry.mav
@@ -327,7 +327,7 @@ export default function TrackProgress() {
             {prs.map(([name, pr], i) => (
               <div key={name} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 0', borderBottom: i < prs.length-1 ? '1px solid var(--bg3)' : 'none',
+                padding: '10px 0', borderBottom: i < prs.length - 1 ? '1px solid var(--bg3)' : 'none',
                 gap: 12,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>

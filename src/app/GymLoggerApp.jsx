@@ -4,12 +4,14 @@ import MyPlan from './plan/MyPlanClient'
 import ExerciseList from './exercises/ExerciseListClient'
 import TrackProgress from './progress/TrackProgressClient'
 import LogSession from './log/LogSessionClient'
+import Science from './science/ScienceClient'
 
 const TABS = [
   { id: 'plan',      label: 'My Plan',       icon: '📋', accent: '--gold' },
   { id: 'exercises', label: 'Exercise List',  icon: '🏋', accent: '--blue' },
   { id: 'progress',  label: 'Track Progress', icon: '📈', accent: '--green' },
   { id: 'log',       label: 'Log Session',    icon: '⚡', accent: '--red' },
+  { id: 'science',   label: 'Science',        icon: '🔬', accent: '--purple' },
 ]
 
 function computeStreak(sessions) {
@@ -29,12 +31,23 @@ function computeStreak(sessions) {
 export default function GymLoggerApp() {
   const [tab, setTab] = useState('plan')
   const [sessions, setSessions] = useState([])
+  const [theme, setTheme] = useState('dark')
 
   useEffect(() => {
     try {
       setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
+      const saved = localStorage.getItem('gymlogger_theme') || 'dark'
+      setTheme(saved)
+      document.documentElement.dataset.theme = saved === 'light' ? 'light' : ''
     } catch {}
   }, [])
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    document.documentElement.dataset.theme = next === 'light' ? 'light' : ''
+    try { localStorage.setItem('gymlogger_theme', next) } catch {}
+  }
 
   const streak = computeStreak(sessions)
   const totalSessions = sessions.length
@@ -52,10 +65,18 @@ export default function GymLoggerApp() {
     <div className="app-shell" style={{ '--accent': `var(${accentVar})` }}>
       <header className="global-header">
         <div className="global-header-top">
-          <h1>GYMLOGGER <span>PRO</span></h1>
-          {streak > 0 && (
-            <div className="streak-badge">🔥 {streak} DAY STREAK</div>
-          )}
+          <div>
+            <h1>SHAKTIVAAN</h1>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.15em', marginTop: 2 }}>YOUR SCIENCE BACKED GYM LOGGER</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {streak > 0 && (
+              <div className="streak-badge">🔥 {streak}d</div>
+            )}
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
         <div className="header-stats">
           <div className="header-stat">SESSIONS <span>{totalSessions}</span></div>
@@ -85,6 +106,7 @@ export default function GymLoggerApp() {
         {tab === 'log'       && <LogSession onSessionSaved={() => {
           try { setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')) } catch {}
         }} />}
+        {tab === 'science'   && <Science />}
       </main>
     </div>
   )

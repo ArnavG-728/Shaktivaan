@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'GymLogger',
-  description: 'Scientific workout tracking for progressive overload and hypertrophy',
+  title: 'Shaktivaan',
+  description: 'Your science backed gym logger — progressive overload, EMG data, and peer-reviewed training principles.',
 }
 
 export default function RootLayout({ children }) {
