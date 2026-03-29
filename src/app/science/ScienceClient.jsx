@@ -284,153 +284,184 @@ The mechanism: at the elongated position, each sarcomere is at greater length, p
   },
 ]
 
-function ConceptCard({ concept }) {
-  const [open, setOpen] = useState(false)
+function ConceptModal({ concept, onClose }) {
   const [activeSection, setActiveSection] = useState(0)
 
   return (
-    <div className={`ex-card ${open ? 'open' : ''}`} style={{ '--accent': concept.accent, marginBottom: 10 }}>
-      <div className="ex-head" onClick={() => setOpen(o => !o)}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 22 }}>{concept.icon}</span>
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: 740, '--accent': concept.accent }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 36, lineHeight: 1 }}>{concept.icon}</span>
             <div>
-              <div className="ex-name" style={{ color: concept.accent }}>{concept.title}</div>
-              <div className="ex-targets">{concept.summary}</div>
+              <div className="modal-title" style={{ color: concept.accent, margin: 0, fontSize: 22 }}>
+                {concept.title}
+              </div>
+              <div style={{ color: 'var(--text3)', fontSize: 14, marginTop: 4, lineHeight: 1.4 }}>
+                {concept.summary}
+              </div>
             </div>
           </div>
+          <button className="btn btn-ghost" onClick={onClose} style={{ fontSize: 24, padding: '4px 8px', marginTop: -4 }}>✕</button>
         </div>
-        <div className="ex-toggle">▾</div>
-      </div>
-      {open && (
-        <div className="ex-body">
-          {concept.sections.length > 1 && (
-            <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-              {concept.sections.map((s, i) => (
-                <button key={i}
-                  className={`filter-chip ${activeSection === i ? 'active' : ''}`}
-                  style={{ '--accent': s.color, fontSize: 10 }}
-                  onClick={() => setActiveSection(i)}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="sci-box" style={{ borderLeftColor: concept.sections[activeSection]?.color || concept.accent }}>
-            <div className="sci-label" style={{ color: concept.sections[activeSection]?.color || concept.accent }}>
-              {concept.sections[activeSection]?.label}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--text3)', lineHeight: 1.75 }}>
-              {concept.sections[activeSection]?.body.split('\n\n').map((para, pi) => {
-                if (para.startsWith('|')) {
-                  // Render table
-                  const rows = para.trim().split('\n').filter(r => !r.match(/^[\|:-]+$/))
-                  return (
-                    <table key={pi} className="sets-table" style={{ marginBottom: 12, width: '100%' }}>
-                      <thead>
-                        <tr>{rows[0].split('|').filter(Boolean).map((cell, ci) => (
-                          <th key={ci}>{cell.trim()}</th>
-                        ))}</tr>
-                      </thead>
-                      <tbody>
-                        {rows.slice(1).map((row, ri) => (
-                          <tr key={ri}>{row.split('|').filter(Boolean).map((cell, ci) => (
-                            <td key={ci}>{cell.trim()}</td>
-                          ))}</tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )
-                }
-                // Bold text
-                const parts = para.split(/(\*\*[^*]+\*\*)/g)
+
+        {concept.sections.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
+            {concept.sections.map((s, i) => (
+              <button key={i}
+                className={`filter-chip ${activeSection === i ? 'active' : ''}`}
+                style={{ '--accent': s.color, fontSize: 11, padding: '8px 14px' }}
+                onClick={() => setActiveSection(i)}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="sci-box" style={{ borderLeftColor: concept.sections[activeSection]?.color || concept.accent, background: 'var(--bg2)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+          <div className="sci-label" style={{ color: concept.sections[activeSection]?.color || concept.accent, fontSize: 13, marginBottom: 12 }}>
+            {concept.sections[activeSection]?.label.toUpperCase()}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--text3)', lineHeight: 1.75 }}>
+            {concept.sections[activeSection]?.body.split('\n\n').map((para, pi) => {
+              if (para.startsWith('|')) {
+                const rows = para.trim().split('\n').filter(r => !r.match(/^[\|:-]+$/))
                 return (
-                  <p key={pi} style={{ marginBottom: 10 }}>
-                    {parts.map((part, pi2) =>
-                      part.startsWith('**') ? <strong key={pi2} style={{ color: 'var(--text)' }}>{part.slice(2, -2)}</strong> : part
-                    )}
-                  </p>
+                  <table key={pi} className="sets-table" style={{ marginBottom: 16, width: '100%', background: 'var(--bg)' }}>
+                    <thead>
+                      <tr>{rows[0].split('|').filter(Boolean).map((cell, ci) => (
+                        <th key={ci}>{cell.trim()}</th>
+                      ))}</tr>
+                    </thead>
+                    <tbody>
+                      {rows.slice(1).map((row, ri) => (
+                        <tr key={ri}>{row.split('|').filter(Boolean).map((cell, ci) => (
+                          <td key={ci}>{cell.trim()}</td>
+                        ))}</tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )
-              })}
-            </div>
+              }
+              if (para.startsWith('>')) {
+                return (
+                  <div key={pi} style={{ padding: '12px 16px', borderLeft: `3px solid ${concept.accent}`, background: 'var(--bg)', marginBottom: 16, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text)' }}>
+                    {para.replace(/^>\s*/, '')}
+                  </div>
+                )
+              }
+              const parts = para.split(/(\*\*[^*]+\*\*)/g)
+              return (
+                <p key={pi} style={{ marginBottom: 14 }}>
+                  {parts.map((part, pi2) =>
+                    part.startsWith('**') ? <strong key={pi2} style={{ color: 'var(--text)' }}>{part.slice(2, -2)}</strong> : part
+                  )}
+                </p>
+              )
+            })}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
 export default function ScienceClient() {
+  const [activeConcept, setActiveConcept] = useState(null)
+
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 32 }}>
         <div className="page-title" style={{ color: 'var(--purple)' }}>SCIENCE HUB</div>
         <div className="page-subtitle">
-          Evidence-based explanations of the principles that underpin every exercise and programme in this app.
-          All references are linked to peer-reviewed research.
+          Evidence-based explanations of the principles that underpin every exercise and programme in this app. Click any concept to dive deep into the research.
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 24 }}>
+      <style>{`
+        .science-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+          margin-bottom: 32px;
+        }
+        @media (max-width: 768px) {
+          .science-grid {
+            grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+          }
+        }
+      `}</style>
+
+      <div className="science-grid">
         {CONCEPTS.map(c => (
           <div key={c.id}
-            onClick={() => document.getElementById(c.id)?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => setActiveConcept(c)}
             style={{
-              padding: '12px 10px 10px',
+              padding: '24px 16px',
               background: 'var(--bg2)',
               border: `1px solid ${c.accent}33`,
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 'var(--radius)',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 0,
-              transition: 'border-color 0.15s, background 0.15s',
-            }}>
-            {/* Icon */}
-            <div style={{ fontSize: 22, lineHeight: 1, marginBottom: 8 }}>{c.icon}</div>
-            {/* Divider */}
-            <div style={{ width: '100%', marginBottom: 8 }} />
-            {/* Title */}
+              transition: 'all 0.2s',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = c.accent; e.currentTarget.style.transform = 'translateY(-2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = `${c.accent}33`; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            <div style={{ fontSize: 36, lineHeight: 1, marginBottom: 16 }}>{c.icon}</div>
             <div style={{
               fontFamily: 'var(--font-head)',
-              fontSize: 13,
+              fontSize: 15,
               fontWeight: 800,
               color: c.accent,
               lineHeight: 1.2,
               textAlign: 'center',
               letterSpacing: '0.02em',
+              marginBottom: 8
             }}>{c.title.split(' — ')[0]}</div>
+            <div style={{
+              fontSize: 12,
+              color: 'var(--text5)',
+              textAlign: 'center',
+              lineHeight: 1.4,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
+              {c.summary}
+            </div>
           </div>
         ))}
       </div>
 
-      <div>
-        {CONCEPTS.map(c => (
-          <div key={c.id} id={c.id}>
-            <ConceptCard concept={c} />
-          </div>
-        ))}
+      <div style={{ padding: '16px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
+        <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>KEY REFERENCES</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 12 }}>
+          {[
+            'Maeo et al. (2021) — Hypertrophy in lengthened vs shortened positions. Frontiers in Physiology.',
+            'Schoenfeld et al. (2017) — Dose-response relationship between weekly sets and hypertrophy. JSCR.',
+            'Schoenfeld (2010) — The mechanisms of muscle hypertrophy. JSCR.',
+            'Barnett et al. (1995) — Muscle use in various chest exercises. JSCR.',
+            'Lehman et al. (2004) — Effect of grip width and hand orientation in various pulling movements. JSCR.',
+            'Bourne et al. (2017) — Impact of the Nordic hamstring exercise on fascicle length. BJSM.',
+            'Contreras et al. (2015) — A comparison of gluteus maximus, biceps femoris, and vastus lateralis EMG. JSCR.',
+            'McGill et al. (2010) — Exercises for the torso. CHEK Institute.',
+            'Gullett et al. (2009) — Biomechanical comparison of back and front squats. JSCR.',
+            'Zourdos et al. (2016) — Novel Resistance Training-Specific Rating of Perceived Exertion Scale.'
+          ].map((ref, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <span style={{ color: 'var(--text5)', fontSize: 11, marginTop: 2 }}>{i + 1}.</span>
+              <span style={{ fontSize: 12, color: 'var(--text4)', lineHeight: 1.5 }}>{ref}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ marginTop: 32, padding: '16px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 8 }}>KEY REFERENCES</div>
-        {[
-          'Maeo et al. (2021) — Triceps brachii hypertrophy in lengthened vs shortened positions. Frontiers in Physiology.',
-          'Schoenfeld et al. (2017) — Dose-response relationship between weekly sets and hypertrophy. JSCR.',
-          'Schoenfeld (2010) — The mechanisms of muscle hypertrophy. JSCR.',
-          'Barnett et al. (1995) — Muscle use in various chest exercises. JSCR.',
-          'Lehman et al. (2004) — Effect of grip width and hand orientation in various pulling movements. JSCR.',
-          'Bourne et al. (2017) — Impact of the Nordic hamstring exercise on fascicle length. BJSM.',
-          'Contreras et al. (2015) — A comparison of gluteus maximus, biceps femoris, and vastus lateralis EMG. JSCR.',
-          'McGill et al. (2010) — Exercises for the torso. CHEK Institute Publications.',
-          'Gullett et al. (2009) — Biomechanical comparison of back and front squats. JSCR.',
-        ].map((ref, i) => (
-          <div key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)', padding: '4px 0', borderBottom: i < 8 ? '1px solid var(--bg3)' : 'none' }}>
-            {ref}
-          </div>
-        ))}
-      </div>
+      {activeConcept && <ConceptModal concept={activeConcept} onClose={() => setActiveConcept(null)} />}
     </div>
   )
 }
