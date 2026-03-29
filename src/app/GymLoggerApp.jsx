@@ -69,7 +69,7 @@ export default function GymLoggerApp() {
         <div className="global-header-top">
           <div>
             <h1>SHAKTIVAAN</h1>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.15em', marginTop: 2 }}>
+            <div className="header-date">
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()} · YOUR SCIENCE BACKED GYM LOGGER
             </div>
           </div>
