@@ -23,6 +23,8 @@ const TYPE_DIM   = { compound: 'var(--orange-dim)', isolation: 'var(--purple-dim
 
 /* ─── Filter Drawer ─────────────────────────────────────────────────────── */
 function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onClose }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const drawerRef = useRef(null)
 
   useEffect(() => {
@@ -56,7 +58,9 @@ function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onC
     </div>
   )
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <>
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 99, backdropFilter: 'blur(2px)' }} />
       <div ref={drawerRef} style={{
@@ -92,7 +96,8 @@ function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onC
         </button>
       </div>
       <style>{`@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }`}</style>
-    </>
+    </>,
+    document.body
   )
 }
 
