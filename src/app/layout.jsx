@@ -1,4 +1,6 @@
 import './globals.css'
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next"
 
 export const viewport = {
   themeColor: '#111111',
@@ -38,6 +40,8 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
+        <Analytics />
+        <SpeedInsights />
         <script
           dangerouslySetInnerHTML={{
             __html: `
