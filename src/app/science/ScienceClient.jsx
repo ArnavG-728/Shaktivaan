@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 const CONCEPTS = [
   {
@@ -286,8 +287,13 @@ The mechanism: at the elongated position, each sarcomere is at greater length, p
 
 function ConceptModal({ concept, onClose }) {
   const [activeSection, setActiveSection] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
-  return (
+  useEffect(() => setMounted(true), [])
+
+  if (!mounted) return null
+
+  return createPortal(
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 740, '--accent': concept.accent }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -362,7 +368,8 @@ function ConceptModal({ concept, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { EXERCISES, MUSCLE_GROUPS, MUSCLE_ACCENTS } from '../../data/exercises'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
@@ -185,6 +186,9 @@ function CreateCustomModal({ initialData, onSave, onClose }) {
   const [repRange, setRepRange] = useState(initialData?.repRange || '8-12')
   const [restRange, setRestRange] = useState(initialData?.restRange || '90s')
   const [type, setType] = useState(initialData?.type || 'isolation')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   function handleSave() {
     if (!name.trim()) return
@@ -195,7 +199,9 @@ function CreateCustomModal({ initialData, onSave, onClose }) {
     })
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ '--accent': MUSCLE_ACCENTS[muscleGroup] || 'var(--purple)' }}>
         <div className="modal-title" style={{ color: 'var(--accent)' }}>{initialData ? 'Edit' : 'Create'} Custom Exercise</div>
@@ -239,7 +245,8 @@ function CreateCustomModal({ initialData, onSave, onClose }) {
           <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim()}>Save Exercise</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

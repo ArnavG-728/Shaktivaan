@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { DEFAULT_PPL_PLAN } from '../../data/defaultPlan'
 import { EXERCISES, MUSCLE_ACCENTS, MUSCLE_GROUPS } from '../../data/exercises'
 
@@ -64,10 +65,14 @@ function ExerciseAccordion({ ex, index, accent }) {
 }
 
 function DayDetailModal({ plan, dayKey, onClose }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const day = plan.days.find(d => d.key === dayKey)
-  if (!day) return null
+  if (!day || !mounted) return null
   const accent = day.accent || 'var(--gold)'
-  return (
+
+  return createPortal(
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 680, '--accent': accent }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -92,7 +97,8 @@ function DayDetailModal({ plan, dayKey, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
