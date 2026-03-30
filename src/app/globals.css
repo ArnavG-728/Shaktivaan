@@ -129,13 +129,25 @@ body {
 
 /* ── GLOBAL HEADER ─────────────────────────────────── */
 .global-header {
-  padding: 16px 16px 0;
+  padding: 16px 16px 4px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 50;
-  background: var(--bg);
-  transition: background 0.25s ease;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg2) 90%, transparent);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: all 0.25s ease;
+}
+
+.header-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent, var(--gold)), transparent);
+  opacity: 0.8;
 }
 
 .global-header-top {
@@ -176,34 +188,53 @@ body {
 
 .header-stats {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-  padding-bottom: 10px;
+  gap: 8px;
+  margin-top: 14px;
+  padding-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.header-stats::-webkit-scrollbar { display: none; }
 
 .header-stat {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text4);
-  letter-spacing: 0.05em;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 80px;
 }
 
-.header-stat span {
+.header-stat .stat-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text5);
+  letter-spacing: 0.1em;
+  margin-bottom: 2px;
+}
+
+.header-stat .stat-value {
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text);
-  font-weight: 500;
+  line-height: 1.1;
 }
 
 .streak-badge {
   font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
   background: var(--gold-dim);
-  border: 1px solid rgba(212, 180, 74, 0.25);
-  border-radius: var(--radius-xs);
+  border: 1px solid rgba(212, 180, 74, 0.3);
+  border-radius: 20px;
   color: var(--gold);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  box-shadow: 0 0 15px var(--gold-dim);
 }
 
 /* Theme toggle button */
@@ -234,7 +265,7 @@ body {
   scrollbar-width: none;
   gap: 0;
   padding: 0 8px;
-  background: var(--bg);
+  background: var(--bg2);
   border-bottom: 1px solid var(--border);
   transition: background 0.25s ease;
 }
@@ -295,7 +326,7 @@ body {
     gap: 0;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    background: color-mix(in srgb, var(--bg2) 85%, transparent);
   }
 
   .nav-tab {

@@ -65,7 +65,8 @@ export default function GymLoggerApp() {
 
   return (
     <div className="app-shell" style={{ '--accent': `var(${accentVar})` }}>
-      <header className="global-header">
+      <header className="global-header" style={{ '--accent': `var(${accentVar})` }}>
+        <div className="header-accent" />
         <div className="global-header-top">
           <div>
             <h1>SHAKTIVAAN</h1>
@@ -73,9 +74,9 @@ export default function GymLoggerApp() {
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()} · YOUR SCIENCE BACKED GYM LOGGER
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {streak > 0 && (
-              <div className="streak-badge">🔥 {streak}d</div>
+              <div className="streak-badge">🔥 {streak} DAY STREAK</div>
             )}
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'dark' ? '☀️' : '🌙'}
@@ -83,9 +84,18 @@ export default function GymLoggerApp() {
           </div>
         </div>
         <div className="header-stats">
-          <div className="header-stat">SESSIONS <span>{totalSessions}</span></div>
-          <div className="header-stat">THIS WEEK <span>{thisWeek}</span></div>
-          <div className="header-stat">PLAN <span>PPL × 2</span></div>
+          <div className="header-stat">
+            <div className="stat-label">TOTAL SESSIONS</div>
+            <div className="stat-value">{totalSessions}</div>
+          </div>
+          <div className="header-stat">
+            <div className="stat-label">THIS WEEK</div>
+            <div className="stat-value">{thisWeek}</div>
+          </div>
+          <div className="header-stat">
+            <div className="stat-label">ACTIVE PLAN</div>
+            <div className="stat-value">PPL × 2</div>
+          </div>
         </div>
       </header>
 
