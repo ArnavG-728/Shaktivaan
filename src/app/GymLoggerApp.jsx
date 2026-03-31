@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import MyPlan from './plan/MyPlanClient'
 import ExerciseList from './exercises/ExerciseListClient'
 import TrackProgress from './progress/TrackProgressClient'
@@ -49,34 +49,6 @@ export default function GymLoggerApp() {
     setTheme(next)
     document.documentElement.dataset.theme = next === 'light' ? 'light' : ''
     try { localStorage.setItem('gymlogger_theme', next) } catch {}
-  }
-
-  const touchStartX = useRef(null)
-  const touchEndX = useRef(null)
-
-  const onTouchStart = (e) => {
-    touchEndX.current = null
-    touchStartX.current = e.targetTouches[0].clientX
-  }
-
-  const onTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX
-  }
-
-  const onTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return
-    const distance = touchStartX.current - touchEndX.current
-    
-    // Swipe left (next tab)
-    if (distance > 60) {
-      const currentIndex = TABS.findIndex(t => t.id === tab)
-      if (currentIndex < TABS.length - 1) setTab(TABS[currentIndex + 1].id)
-    }
-    // Swipe right (prev tab)
-    else if (distance < -60) {
-      const currentIndex = TABS.findIndex(t => t.id === tab)
-      if (currentIndex > 0) setTab(TABS[currentIndex - 1].id)
-    }
   }
 
   const streak = computeStreak(sessions)
@@ -141,12 +113,7 @@ export default function GymLoggerApp() {
         ))}
       </nav>
 
-      <main 
-        className="page-content"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+      <main className="page-content">
         <div key={tab} className="tab-content">
           {tab === 'plan'      && <MyPlan />}
           {tab === 'exercises' && <ExerciseList />}

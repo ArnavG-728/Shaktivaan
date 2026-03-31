@@ -21,7 +21,7 @@ const CONCEPTS = [
 - Intensity: 85–100% of 1RM
 - Mechanism: maximal motor unit recruitment, rate coding, inter-muscular coordination
 
-**Research:** Schoenfeld et al. (2017) showed strength programmes (≤6 reps) and hypertrophy programmes (6–12 reps) produce similar muscle size when volume is equalised — but only the low-rep programme significantly improves 1RM expression.`,
+**Research:** [Schoenfeld et al. (2017)](https://pubmed.ncbi.nlm.nih.gov/27433992/) showed strength programmes (≤6 reps) and hypertrophy programmes (6–12 reps) produce similar muscle size when volume is equalised — but only the low-rep programme significantly improves 1RM expression.`,
       },
       {
         label: 'Hypertrophy Training',
@@ -34,7 +34,7 @@ const CONCEPTS = [
 - Intensity: 60–85% of 1RM
 - Mechanisms: mechanical tension, metabolic stress, muscle damage (secondary)
 
-**Research:** Schoenfeld (2010) — the seminal hypertrophy mechanism paper. Mechanical tension is the primary driver. Exercises with lengthened-position loading (Maeo et al. 2021) produce ~2× more hypertrophy than shortened-position training at matched load — this is why full ROM and stretch-loaded exercises dominate this app.`,
+**Research:** [Schoenfeld (2010)](https://pubmed.ncbi.nlm.nih.gov/20847704/) — the seminal hypertrophy mechanism paper. Mechanical tension is the primary driver. Exercises with lengthened-position loading ([Maeo et al. 2021](https://pubmed.ncbi.nlm.nih.gov/33009197/)) produce ~2× more hypertrophy than shortened-position training at matched load — this is why full ROM and stretch-loaded exercises dominate this app.`,
       },
     ],
   },
@@ -57,7 +57,7 @@ const CONCEPTS = [
 4. **ROM** — greater range of motion increases the stretch stimulus
 5. **Technique** — cleaner form creates more tension on the target muscle
 
-**Research:** Ralston et al. (2017) meta-analysis confirmed that progressive increases in load are the strongest predictor of hypertrophy and strength gains when volume is controlled. The body specifically adapts to the demands placed upon it (SAID principle — Specific Adaptations to Imposed Demands).`,
+**Research:** [Ralston et al. (2017)](https://pubmed.ncbi.nlm.nih.gov/28755103/) meta-analysis confirmed that progressive increases in load are the strongest predictor of hypertrophy and strength gains when volume is controlled. The body specifically adapts to the demands placed upon it (SAID principle — Specific Adaptations to Imposed Demands).`,
       },
     ],
   },
@@ -87,7 +87,7 @@ These are the minimum thresholds. Most intermediate-advanced lifters should trai
         color: 'var(--blue)',
         body: `MAV is the **sweet spot** — the range above MEV where more volume produces more growth. This ranges from ~10–20+ sets/week per muscle depending on training status.
 
-**Research:** Schoenfeld et al. (2017) meta-analysis: a dose-response relationship exists between weekly sets and hypertrophy up to approximately 20 sets/muscle/week for advanced trainees.
+**Research:** [Schoenfeld et al. (2017)](https://pubmed.ncbi.nlm.nih.gov/27433992/) meta-analysis: a dose-response relationship exists between weekly sets and hypertrophy up to approximately 20+ sets/muscle/week for advanced trainees.
 
 The Track Progress page charts your sets against MEV (10) and MAV (20) lines using this research.`,
       },
@@ -129,7 +129,7 @@ An exercise producing 80% MVC means 80% of the muscle's maximum recruitment capa
 
 **HIGH EMG** — exercises that produce peak muscle activation (>70% MVC in research). Examples: deadlifts, pull-ups, curl variations. These recruit the most fibres per rep.
 
-**STRETCH-LOADED** — exercises where muscle activation is HIGH specifically in the **lengthened/stretched position**. This is critical because Maeo et al. (2021) demonstrated that exercises trained in the lengthened position produce ~2× the hypertrophy of exercises trained in the shortened position. Examples: incline DB curl (long head stretch), RDL (hamstring stretch).
+**STRETCH-LOADED** — exercises where muscle activation is HIGH specifically in the **lengthened/stretched position**. This is critical because [Maeo et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33009197/) demonstrated that exercises trained in the lengthened position produce ~2× the hypertrophy of exercises trained in the shortened position. Examples: incline DB curl (long head stretch), RDL (hamstring stretch).
 
 **CONSTANT TENSION** — cable exercises that maintain resistance through the full ROM. Free weights lose tension at the top (where gravity's moment arm is shortest). Cables eliminate this. Examples: cable lateral raise, cable flyes, cable curls.`,
       },
@@ -194,7 +194,7 @@ The Track Progress page uses this formula to plot your strength trend over time 
 | 9 | Near limit — 1 more rep |
 | 10 | Maximum — could not do another rep |
 
-**Research:** Zourdos et al. (2016) validated RPE-based training in powerlifters — RPE 8–9 sets produce optimal strength development. For hypertrophy, most sets should be RPE 7.5–9 (2–3 RIR).
+**Research:** [Zourdos et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26040702/) validated RPE-based training in powerlifters — RPE 8–9 sets produce optimal strength development. For hypertrophy, most sets should be RPE 7.5–9 (2–3 RIR).
 
 The Log Session page captures your RPE for every set.`,
       },
@@ -207,7 +207,7 @@ The Log Session page captures your RPE for every set.`,
 - RPE 9 = 1 RIR
 - RPE 10 = 0 RIR (technical failure)
 
-**Proximity to failure is the key driver of hypertrophy** (Schoenfeld & Grgic, 2019). Research confirms that sets ending 0–3 RIR from failure produce equivalent hypertrophy, while sets with >5 RIR significantly underperform.
+**Proximity to failure is the key driver of hypertrophy** ([Schoenfeld & Grgic, 2019](https://scholar.google.com/scholar?q=Does+Training+to+Failure+Maximize+Muscle+Hypertrophy)). Research confirms that sets ending 0–3 RIR from failure produce equivalent hypertrophy, while sets with >5 RIR significantly underperform.
 
 For strength: train 1–3 RIR on working sets to preserve technique and CNS reserves.
 For hypertrophy: drive sets to 0–2 RIR on isolation exercises; 1–3 RIR on big compounds.`,
@@ -226,7 +226,7 @@ For hypertrophy: drive sets to 0–2 RIR on isolation exercises; 1–3 RIR on bi
         color: 'var(--blue)',
         body: `**Range of motion** is not just a safety consideration — it is a primary determinant of hypertrophic stimulus.
 
-**Mookerjee & Ratamess (1999) + Maeo et al. (2021):** Full ROM produces significantly greater muscle hypertrophy than partial ROM at matched load. The stretch position (muscle elongated) is where the greatest mechanical tension per fibre is created.
+**[Maeo et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33009197/):** Full ROM produces significantly greater muscle hypertrophy than partial ROM at matched load. The stretch position (muscle elongated) is where the greatest mechanical tension per fibre is created.
 
 **Practical implications:**
 - Incline DB curl → arm hanging fully extended at bottom (long head stretch) → significantly more bicep peak growth
@@ -238,7 +238,7 @@ For hypertrophy: drive sets to 0–2 RIR on isolation exercises; 1–3 RIR on bi
       {
         label: 'Stretch-Mediated Hypertrophy',
         color: 'var(--gold)',
-        body: `The most important finding in modern exercise science: **muscles trained in the lengthened (stretched) position grow approximately twice as much as muscles trained in the shortened position** (Maeo et al., 2021 — Frontiers in Physiology).
+        body: `The most important finding in modern exercise science: **muscles trained in the lengthened (stretched) position grow approximately twice as much as muscles trained in the shortened position** ([Maeo et al., 2021 — Frontiers in Physiology](https://pubmed.ncbi.nlm.nih.gov/33009197/)).
 
 The mechanism: at the elongated position, each sarcomere is at greater length, producing more titin-derived passive force in addition to the active myosin-actin crossbridge force. This combined mechanical signalling through both active and passive pathways leads to superior muscle protein synthesis.
 
@@ -265,7 +265,7 @@ The mechanism: at the elongated position, each sarcomere is at greater length, p
 | 90–120s | Heavy compounds | Near-full recovery for quality reps |
 | 2–4min | Max strength (1–5 RM) | Full ATP-PCr system recovery |
 
-**Schoenfeld et al. (2016):** Longer rest (3 min vs 1 min) between sets produced significantly greater hypertrophy and strength gains, because it allowed more total quality volume per session. Short rest should be strategic (intentional pump sets) not habitual.`,
+**[Schoenfeld et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26605807/):** Longer rest (3 min vs 1 min) between sets produced significantly greater hypertrophy and strength gains, because it allowed more total quality volume per session. Short rest should be strategic (intentional pump sets) not habitual.`,
       },
       {
         label: 'Inter-Session Recovery',
@@ -277,9 +277,9 @@ The mechanism: at the elongated position, each sarcomere is at greater length, p
 - Intermediate: Upper/Lower or PPL × 2 (each muscle 2×/week)
 - Advanced: 2× per muscle minimum; some muscles may benefit from direct 3× frequency
 
-**Sleep:** Dattilo et al. (2011) — sleep restriction below 6 hours reduces testosterone by ~10–15% and increases cortisol, directly impairing muscle protein synthesis. 7–9 hours is the dose required for full recovery.
+**Sleep:** [Dattilo et al. (2011)](https://pubmed.ncbi.nlm.nih.gov/21550729/) — sleep restriction below 6 hours reduces testosterone by ~10–15% and increases cortisol, directly impairing muscle protein synthesis. 7–9 hours is the dose required for full recovery.
 
-**Nutrition:** 1.6–2.2g protein/kg bodyweight/day is the evidence-based range for maximising hypertrophy (Morton et al. 2018 meta-analysis).`,
+**Nutrition:** 1.6–2.2g protein/kg bodyweight/day is the evidence-based range for maximising hypertrophy ([Morton et al. 2018](https://pubmed.ncbi.nlm.nih.gov/28698222/) meta-analysis).`,
       },
     ],
   },
@@ -356,12 +356,21 @@ function ConceptModal({ concept, onClose }) {
                   </div>
                 )
               }
-              const parts = para.split(/(\*\*[^*]+\*\*)/g)
+              const parts = para.split(/(\*\*.*?\*\*|\[.*?\]\(.*?\))/g)
               return (
                 <p key={pi} style={{ marginBottom: 14 }}>
-                  {parts.map((part, pi2) =>
-                    part.startsWith('**') ? <strong key={pi2} style={{ color: 'var(--text)' }}>{part.slice(2, -2)}</strong> : part
-                  )}
+                  {parts.map((part, pi2) => {
+                    if (!part) return null
+                    if (part.startsWith('**')) return <strong key={pi2} style={{ color: 'var(--text)' }}>{part.slice(2, -2)}</strong>
+                    if (part.startsWith('[')) {
+                      const textMatch = part.match(/\[(.*?)\]/)
+                      const urlMatch = part.match(/\((.*?)\)/)
+                      if (textMatch && urlMatch) {
+                        return <a key={pi2} href={urlMatch[1]} target="_blank" rel="noreferrer" style={{ color: concept.accent, textDecoration: 'underline' }}>{textMatch[1]}</a>
+                      }
+                    }
+                    return part
+                  })}
                 </p>
               )
             })}

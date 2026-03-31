@@ -350,64 +350,6 @@ export default function TrackProgress() {
         </div>
       )}
 
-      {/* Session History */}
-      <div className="dash-panel">
-        <div className="dash-panel-title">Session History</div>
-        <div className="dash-panel-sub">{sessions.length} total sessions logged</div>
-        <div>
-          {sortedSessions.slice(0, 20).map((session, i) => (
-            <div key={session.id}>
-              <div
-                className="session-item"
-                onClick={() => setExpandSession(expandSession === session.id ? null : session.id)}
-              >
-                <div style={{ flex: 1 }}>
-                  <div className="session-date">{formatDate(session.date)}</div>
-                  <div className="session-label">{session.dayLabel || 'Workout'}</div>
-                  <div className="session-meta">
-                    {session.sets?.filter(s => s.done).length || 0} sets completed
-                    {session.duration && ` · ${formatDuration(session.duration)}`}
-                  </div>
-                </div>
-                <div>
-                  <div className="session-tonnage">{Math.round(session.totalTonnage || 0)} kg</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', textAlign: 'right', marginTop: 2 }}>tonnage</div>
-                </div>
-                <div style={{ color: 'var(--text5)', fontSize: 12 }}>{expandSession === session.id ? '▴' : '▾'}</div>
-              </div>
-              {expandSession === session.id && session.sets && (
-                <div style={{ padding: '10px 16px 14px', background: 'var(--bg3)', borderBottom: '1px solid var(--border)' }}>
-                  {Object.entries(
-                    session.sets.filter(s => s.done).reduce((acc, s) => {
-                      if (!acc[s.exerciseName]) acc[s.exerciseName] = []
-                      acc[s.exerciseName].push(s)
-                      return acc
-                    }, {})
-                  ).map(([exName, sets]) => (
-                    <div key={exName} style={{ marginBottom: 10 }}>
-                      <div style={{ fontFamily: 'var(--font-head)', fontSize: 13, fontWeight: 700, color: 'var(--text2)', marginBottom: 4 }}>
-                        {exName}
-                      </div>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        {sets.map((s, si) => (
-                          <div key={si} style={{
-                            fontFamily: 'var(--font-mono)', fontSize: 10, padding: '3px 8px',
-                            background: 'var(--bg2)', borderRadius: 'var(--radius-xs)',
-                            color: 'var(--text3)',
-                          }}>
-                            {s.weight}kg × {s.reps}
-                            <span style={{ color: 'var(--text5)', marginLeft: 4 }}>RPE {s.rpe || '?'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
