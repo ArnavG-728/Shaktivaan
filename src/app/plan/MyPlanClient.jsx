@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { DEFAULT_PPL_PLAN } from '../../data/defaultPlan'
+import { PRELOADED_PLANS } from '../../data/plans/index'
 import { EXERCISES, MUSCLE_ACCENTS, MUSCLE_GROUPS } from '../../data/exercises'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
@@ -341,12 +341,25 @@ export default function MyPlan() {
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('gymlogger_plans'))
-      if (stored && stored.length > 0) setPlans(stored)
-      else { setPlans([DEFAULT_PPL_PLAN]); localStorage.setItem('gymlogger_plans', JSON.stringify([DEFAULT_PPL_PLAN])) }
+      if (stored && stored.length > 0) {
+        const merged = [...stored]
+        let added = false
+        for (const p of PRELOADED_PLANS) {
+          if (!merged.find(m => m.id === p.id)) {
+            merged.push(p)
+            added = true
+          }
+        }
+        setPlans(merged)
+        if (added) localStorage.setItem('gymlogger_plans', JSON.stringify(merged))
+      } else { 
+        setPlans(PRELOADED_PLANS); 
+        localStorage.setItem('gymlogger_plans', JSON.stringify(PRELOADED_PLANS)) 
+      }
       
       setAllExercises([...EXERCISES].sort((a,b) => a.name.localeCompare(b.name)))
     } catch {
-      setPlans([DEFAULT_PPL_PLAN])
+      setPlans(PRELOADED_PLANS)
     }
   }, [])
 
@@ -366,6 +379,16 @@ export default function MyPlan() {
     else savePlans([...plans, planData])
     setEditingPlan(null)
   }
+
+  const toggleStar = (id) => {
+    savePlans(plans.map(p => p.id === id ? { ...p, isStarred: !p.isStarred } : p))
+  }
+
+  const sortedPlans = [...plans].sort((a, b) => {
+    if (a.isStarred && !b.isStarred) return -1
+    if (!a.isStarred && b.isStarred) return 1
+    return 0
+  })
 
   if (editingPlan) {
     return <PlanEditor initialPlan={editingPlan.id ? editingPlan : null} allExercises={allExercises} onSave={handleSavePlan} onClose={() => setEditingPlan(null)} />
@@ -393,14 +416,25 @@ export default function MyPlan() {
           <button className="btn btn-primary" onClick={() => setEditingPlan({})}>Create Plan</button>
         </div>
       ) : (
-        plans.map(plan => (
+        sortedPlans.map(plan => (
           <div key={plan.id} className="plan-card">
             <div className="plan-card-header">
-              <div>
-                <div className="plan-card-name">{plan.name}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button 
+                    className="btn btn-ghost" 
+                    onClick={() => toggleStar(plan.id)}
+                    style={{ color: plan.isStarred ? 'var(--gold)' : 'var(--text4)', padding: 0, fontSize: 22 }}
+                    title={plan.isStarred ? 'Unpin Plan' : 'Pin Plan'}
+                  >
+                    {plan.isStarred ? '★' : '☆'}
+                  </button>
+                  <div className="plan-card-name" style={{ margin: 0 }}>{plan.name}</div>
+                </div>
                 <div className="plan-card-type">{plan.type} · {plan.days.filter(d => !d.rest && d.exercises?.length > 0).length} training days</div>
+                {plan.description && <p style={{ fontSize: 13, color: 'var(--text3)', marginTop: 8, lineHeight: 1.5 }}>{plan.description}</p>}
               </div>
-              <div className="plan-actions" style={{ display: 'flex', gap: 6 }}>
+              <div className="plan-actions" style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                 <button className="btn btn-outline btn-sm" onClick={() => setEditingPlan(plan)}>Edit</button>
                 <button className="btn btn-danger btn-sm" onClick={() => deletePlan(plan.id)}>Delete</button>
               </div>
