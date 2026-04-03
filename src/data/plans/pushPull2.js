@@ -7,7 +7,7 @@ export const PUSH_PULL_2 = {
   description: 'A 4-day split avoiding spinal loading, heavily relying on machines and cables to isolate muscle groups safely near failure.',
   days: [
     {
-      key: 'push1', label: 'Push + Quads 1 (Isolation focus)', focus: 'HYPERTROPHY', accent: '#e5534b',
+      key: 'push1', label: 'Push + Quads 1', focus: 'HYPERTROPHY', accent: '#e5534b',
       exercises: [
         { ...findEx('leg-press'), sets: genSets(4, '12', '2m', 150, 0) },
         { ...findEx('machine-chest-press'), sets: genSets(4, '12', '90s', 50, 0) },
@@ -17,7 +17,7 @@ export const PUSH_PULL_2 = {
       ]
     },
     {
-      key: 'pull1', label: 'Pull + Hams 1 (Isolation focus)', focus: 'HYPERTROPHY', accent: '#4e9eed',
+      key: 'pull1', label: 'Pull + Hams 1', focus: 'HYPERTROPHY', accent: '#4e9eed',
       exercises: [
         { ...findEx('lying-leg-curl'), sets: genSets(4, '12', '90s', 35, 0) },
         { ...findEx('lat-pulldown'), sets: genSets(4, '10', '90s', 55, 0) },
@@ -28,7 +28,7 @@ export const PUSH_PULL_2 = {
     },
     { key: 'rest1', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'push2', label: 'Push + Quads 2 (Incline + Sweep)', focus: 'HYPERTROPHY', accent: '#3db88a',
+      key: 'push2', label: 'Push + Quads 2', focus: 'HYPERTROPHY', accent: '#3db88a',
       exercises: [
         { ...findEx('hack-squat'), sets: genSets(4, '12', '2m', 60, 0) },
         { ...findEx('incline-machine-press'), sets: genSets(4, '12', '90s', 45, 0) },
@@ -39,7 +39,7 @@ export const PUSH_PULL_2 = {
       ]
     },
     {
-      key: 'pull2', label: 'Pull + Hams 2 (Thickness + Peak)', focus: 'HYPERTROPHY', accent: '#9b72cf',
+      key: 'pull2', label: 'Pull + Hams 2', focus: 'HYPERTROPHY', accent: '#9b72cf',
       exercises: [
         { ...findEx('seated-leg-curl'), sets: genSets(4, '12', '60s', 35, 0) },
         { ...findEx('t-bar-row'), sets: genSets(4, '10', '90s', 35, 0) },

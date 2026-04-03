@@ -7,7 +7,7 @@ export const FULL_BODY_1 = {
   description: 'A 3-day full body split. High frequency, focuses on heavy multi-joint movements with daily rotating main compounds.',
   days: [
     {
-      key: 'day1', label: 'Day 1 (Squat Focus)', focus: 'STRENGTH', accent: '#e5534b',
+      key: 'day1', label: 'Day 1', focus: 'STRENGTH', accent: '#e5534b',
       exercises: [
         { ...findEx('bb-squat'), sets: genSets(4, '5', '3m', 90, 0) },
         { ...findEx('flat-bb-bench'), sets: genSets(3, '8', '2m', 65, 0) },
@@ -18,7 +18,7 @@ export const FULL_BODY_1 = {
     },
     { key: 'rest1', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'day2', label: 'Day 2 (Deadlift Focus)', focus: 'STRENGTH', accent: '#4e9eed',
+      key: 'day2', label: 'Day 2', focus: 'STRENGTH', accent: '#4e9eed',
       exercises: [
         { ...findEx('conventional-deadlift'), sets: genSets(3, '5', '3m', 120, 0) },
         { ...findEx('bb-ohp'), sets: genSets(3, '6', '2.5m', 40, 0) },
@@ -29,7 +29,7 @@ export const FULL_BODY_1 = {
     },
     { key: 'rest2', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'day3', label: 'Day 3 (Bench Focus)', focus: 'STRENGTH', accent: '#e5934b',
+      key: 'day3', label: 'Day 3', focus: 'STRENGTH', accent: '#e5934b',
       exercises: [
         { ...findEx('flat-bb-bench'), sets: genSets(4, '5', '3m', 70, 0) },
         { ...findEx('hack-squat'), sets: genSets(3, '8', '2m', 60, 0) },

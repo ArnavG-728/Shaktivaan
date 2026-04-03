@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { PRELOADED_PLANS } from '../../data/plans/index'
 import { EXERCISES, MUSCLE_ACCENTS, MUSCLE_GROUPS } from '../../data/exercises'
+import ExerciseSelectorModal from '../../components/ExerciseSelectorModal'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
 
@@ -167,6 +168,7 @@ function PlanEditorExercise({ ex, index, onUpdate, onRemove }) {
 
 function PlanEditor({ initialPlan, allExercises, onSave, onClose }) {
   const [plan, setPlan] = useState(() => initialPlan || { id: genId(), name: '', type: 'Custom', days: [] })
+  const [pickerDayIdx, setPickerDayIdx] = useState(null)
 
   const updatePlan = (field, val) => setPlan(p => ({ ...p, [field]: val }))
   
@@ -313,10 +315,16 @@ function PlanEditor({ initialPlan, allExercises, onSave, onClose }) {
                 )}
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <select className="form-select" style={{ flex: 1, borderStyle: 'dashed' }} value="" onChange={e => { if(e.target.value) addExercise(dIdx, e.target.value); e.target.value = '' }}>
-                    <option value="">+ Add Exercise to {day.label}...</option>
-                    {allExercises.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
-                  </select>
+                  <button className="btn btn-outline" style={{ flex: 1, borderStyle: 'dashed', justifyContent: 'flex-start', color: 'var(--text4)' }} onClick={() => setPickerDayIdx(dIdx)}>
+                    + Add Exercise to {day.label}...
+                  </button>
+                  {pickerDayIdx === dIdx && (
+                    <ExerciseSelectorModal 
+                      allExercises={allExercises} 
+                      onSelect={(exName) => { addExercise(dIdx, exName); setPickerDayIdx(null) }} 
+                      onClose={() => setPickerDayIdx(null)} 
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -342,16 +350,21 @@ export default function MyPlan() {
     try {
       const stored = JSON.parse(localStorage.getItem('gymlogger_plans'))
       if (stored && stored.length > 0) {
-        const merged = [...stored]
-        let added = false
+        const merged = stored.map(s => {
+          const preloaded = PRELOADED_PLANS.find(p => p.id === s.id)
+          return preloaded ? { ...preloaded, isStarred: s.isStarred } : s
+        })
+        
+        let changed = false
         for (const p of PRELOADED_PLANS) {
           if (!merged.find(m => m.id === p.id)) {
             merged.push(p)
-            added = true
+            changed = true
           }
         }
+        
         setPlans(merged)
-        if (added) localStorage.setItem('gymlogger_plans', JSON.stringify(merged))
+        localStorage.setItem('gymlogger_plans', JSON.stringify(merged))
       } else { 
         setPlans(PRELOADED_PLANS); 
         localStorage.setItem('gymlogger_plans', JSON.stringify(PRELOADED_PLANS)) 

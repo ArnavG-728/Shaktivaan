@@ -7,7 +7,7 @@ export const PPL_2 = {
   description: 'A higher volume, purely aesthetic PPL that skips powerlifting compounds (no barbell deadlift or flat barbell bench) to focus 100% on muscle tension and joint health.',
   days: [
     {
-      key: 'push1', label: 'Push (Upper Chest & Medial Delt)', focus: 'HYPERTROPHY', accent: '#e5534b',
+      key: 'push1', label: 'Push', focus: 'HYPERTROPHY', accent: '#e5534b',
       desc: 'Focus on incline pressing and lateral raises for the V-Taper.',
       exercises: [
         { ...findEx('incline-db-press'), sets: genSets(4, '10', '90s', 25, 0) },
@@ -18,7 +18,7 @@ export const PPL_2 = {
       ]
     },
     {
-      key: 'pull1', label: 'Pull (Lat Width & Bicep Peak)', focus: 'HYPERTROPHY', accent: '#4e9eed',
+      key: 'pull1', label: 'Pull', focus: 'HYPERTROPHY', accent: '#4e9eed',
       desc: 'All about width. Pull-ups and heavy DB rows.',
       exercises: [
         { ...findEx('wide-pullups'), sets: genSets(4, '10', '90s') },
@@ -29,7 +29,7 @@ export const PPL_2 = {
       ]
     },
     {
-      key: 'legs1', label: 'Legs (Quad Sweep)', focus: 'HYPERTROPHY', accent: '#3db88a',
+      key: 'legs1', label: 'Legs', focus: 'HYPERTROPHY', accent: '#3db88a',
       desc: 'Hack squats and extensions to build the outer quad sweep.',
       exercises: [
         { ...findEx('hack-squat'), sets: genSets(4, '10', '90s', 60, 0) },
@@ -41,7 +41,7 @@ export const PPL_2 = {
     },
     { key: 'rest1', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'push2', label: 'Push (Chest Depth & Triceps)', focus: 'HYPERTROPHY', accent: '#e5934b',
+      key: 'push2', label: 'Push', focus: 'HYPERTROPHY', accent: '#e5934b',
       desc: 'Cable work and close grip pressing for thick triceps.',
       exercises: [
         { ...findEx('flat-db-bench'), sets: genSets(4, '10', '90s', 30, 0) },
@@ -53,7 +53,7 @@ export const PPL_2 = {
       ]
     },
     {
-      key: 'pull2', label: 'Pull (Back Thickness & Brachialis)', focus: 'HYPERTROPHY', accent: '#9b72cf',
+      key: 'pull2', label: 'Pull', focus: 'HYPERTROPHY', accent: '#9b72cf',
       desc: 'Rowing focus to build 3D depth.',
       exercises: [
         { ...findEx('pendlay-row'), sets: genSets(4, '8', '90s', 60, 0) },
@@ -64,7 +64,7 @@ export const PPL_2 = {
       ]
     },
     {
-      key: 'legs2', label: 'Legs (Hamstring/Glute Tie-in)', focus: 'HYPERTROPHY', accent: '#3dbdb8',
+      key: 'legs2', label: 'Legs', focus: 'HYPERTROPHY', accent: '#3dbdb8',
       desc: 'Posterior chain focus for a balanced lower body.',
       exercises: [
         { ...findEx('rdl'), sets: genSets(4, '10', '90s', 80, 0) },

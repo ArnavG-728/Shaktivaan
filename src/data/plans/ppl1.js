@@ -7,7 +7,7 @@ export const PPL_1 = {
   description: 'A 6-day split combining heavy neural adaptation (strength) days and pump-focused hypertrophy days. Based on the 2x frequency model to maximise muscle protein synthesis.',
   days: [
     {
-      key: 'push1', label: 'Push 1 (Strength)', focus: 'STRENGTH', accent: '#e5534b',
+      key: 'push1', label: 'Push 1', focus: 'STRENGTH', accent: '#e5534b',
       desc: 'Heavy, neural, ascending pyramid.',
       vol: [{ k: 'CHEST', v: '8 sets' }, { k: 'DELTS', v: '5 sets' }, { k: 'TRICEPS', v: '6 sets' }],
       exercises: [
@@ -20,7 +20,7 @@ export const PPL_1 = {
       ]
     },
     {
-      key: 'pull1', label: 'Pull 1 (Strength)', focus: 'STRENGTH', accent: '#4e9eed',
+      key: 'pull1', label: 'Pull 1', focus: 'STRENGTH', accent: '#4e9eed',
       desc: 'Deadlift-led strength day. Lat width and thick rhomboids.',
       vol: [{ k: 'BACK', v: '12 sets' }, { k: 'BICEPS', v: '5 sets' }],
       exercises: [
@@ -32,7 +32,7 @@ export const PPL_1 = {
       ]
     },
     {
-      key: 'legs1', label: 'Legs 1 (Strength)', focus: 'STRENGTH', accent: '#3db88a',
+      key: 'legs1', label: 'Legs 1', focus: 'STRENGTH', accent: '#3db88a',
       desc: 'Squat-led strength. Deep ROM and heavy hamstrings.',
       vol: [{ k: 'QUADS', v: '10 sets' }, { k: 'HAMSTRINGS', v: '7 sets' }],
       exercises: [
@@ -44,7 +44,7 @@ export const PPL_1 = {
       ]
     },
     {
-      key: 'push2', label: 'Push 2 (Hypertrophy)', focus: 'HYPERTROPHY', accent: '#e5934b',
+      key: 'push2', label: 'Push 2', focus: 'HYPERTROPHY', accent: '#e5934b',
       desc: 'Isolation-first. 3s eccentrics. Chase the burn.',
       vol: [{ k: 'CHEST', v: '8 sets' }, { k: 'DELTS', v: '12 sets' }],
       exercises: [
@@ -57,7 +57,7 @@ export const PPL_1 = {
       ]
     },
     {
-      key: 'pull2', label: 'Pull 2 (Hypertrophy)', focus: 'HYPERTROPHY', accent: '#9b72cf',
+      key: 'pull2', label: 'Pull 2', focus: 'HYPERTROPHY', accent: '#9b72cf',
       desc: 'Lat width, bicep peak. Pure aesthetic architecture.',
       vol: [{ k: 'LATS', v: '8 sets' }, { k: 'BICEPS', v: '12 sets' }],
       exercises: [
@@ -70,7 +70,7 @@ export const PPL_1 = {
       ]
     },
     {
-      key: 'legs2', label: 'Legs 2 (Hypertrophy)', focus: 'HYPERTROPHY', accent: '#3dbdb8',
+      key: 'legs2', label: 'Legs 2', focus: 'HYPERTROPHY', accent: '#3dbdb8',
       desc: 'Quad isolation, glute peak contraction.',
       vol: [{ k: 'QUADS', v: '11 sets' }, { k: 'ABS', v: '11 sets' }],
       exercises: [

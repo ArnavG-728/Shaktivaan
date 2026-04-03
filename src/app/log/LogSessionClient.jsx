@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import ExerciseSelectorModal from '../../components/ExerciseSelectorModal'
 import { EXERCISES } from '../../data/exercises'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
@@ -318,6 +319,7 @@ export default function LogSession({ onSessionSaved }) {
   const [elapsed, setElapsed] = useState(0)
   const [sessionNote, setSessionNote] = useState('')
   const [allExercises, setAllExercises] = useState(EXERCISES)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const [prevSession, setPrevSession] = useState(null)
   const [pastSessions, setPastSessions] = useState([])
@@ -636,13 +638,19 @@ export default function LogSession({ onSessionSaved }) {
 
           {/* Add Exercise */}
           <div style={{ margin: '20px 0', padding: 12, border: '1px dashed var(--border2)', borderRadius: 'var(--radius)' }}>
-            <select
-              className="form-select" style={{ width: '100%', border: 'none', background: 'transparent' }}
-              value="" onChange={e => { addExerciseToFreestyle(e.target.value); e.target.value = '' }}
+            <button
+              className="btn btn-outline" style={{ width: '100%', border: 'none', background: 'transparent', justifyContent: 'flex-start', color: 'var(--text4)' }}
+              onClick={() => setPickerOpen(true)}
             >
-              <option value="">+ Add Exercise...</option>
-              {allExercises.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
-            </select>
+              + Add Exercise...
+            </button>
+            {pickerOpen && (
+              <ExerciseSelectorModal 
+                allExercises={allExercises} 
+                onSelect={(exName) => { addExerciseToFreestyle(exName); setPickerOpen(false) }} 
+                onClose={() => setPickerOpen(false)} 
+              />
+            )}
           </div>
 
           {/* Session Note */}

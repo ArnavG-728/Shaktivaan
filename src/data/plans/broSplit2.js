@@ -39,7 +39,7 @@ export const BRO_SPLIT_2 = {
     },
     { key: 'rest1', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'weakpoint', label: 'Weak Point (Custom)', focus: 'HYPERTROPHY', accent: '#9b72cf',
+      key: 'weakpoint', label: 'Weak Point', focus: 'HYPERTROPHY', accent: '#9b72cf',
       desc: 'Hit whatever muscle group needs to catch up (e.g. Arms, Calves, Rear Delts). Default: Rear Delts & Abs.',
       exercises: [
         { ...findEx('face-pull'), sets: genSets(4, '15', '45s', 15, 0) },

@@ -9,7 +9,7 @@ import { FULL_BODY_2 } from './fullBody2.js';
 import { FULL_BODY_3 } from './fullBody3.js';
 import { BRO_SPLIT_1 } from './broSplit1.js';
 import { BRO_SPLIT_2 } from './broSplit2.js';
-import { HYBRID_6_DAY } from './hybrid6Day.js';
+import { HYBRID_6_DAY } from './hybrid.js';
 
 export const PRELOADED_PLANS = [
   PPL_1,

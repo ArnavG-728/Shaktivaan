@@ -7,7 +7,7 @@ export const FULL_BODY_2 = {
   description: 'A 3-day split balancing barbell strength with unilateral movements for functional athletic performance.',
   days: [
     {
-      key: 'day1', label: 'Day 1 (Power & Balance)', focus: 'MIXED', accent: '#e5534b',
+      key: 'day1', label: 'Day 1', focus: 'MIXED', accent: '#e5534b',
       exercises: [
         { ...findEx('conventional-deadlift'), sets: genSets(4, '5', '3m', 100, 0) },
         { ...findEx('incline-db-press'), sets: genSets(3, '10', '90s', 25, 0) },
@@ -18,7 +18,7 @@ export const FULL_BODY_2 = {
     },
     { key: 'rest1', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'day2', label: 'Day 2 (Strength & Explosiveness)', focus: 'MIXED', accent: '#3db88a',
+      key: 'day2', label: 'Day 2', focus: 'MIXED', accent: '#3db88a',
       exercises: [
         { ...findEx('front-squat'), sets: genSets(4, '6', '2.5m', 70, 0) },
         { ...findEx('bb-ohp'), sets: genSets(3, '8', '2m', 35, 0) },
@@ -29,7 +29,7 @@ export const FULL_BODY_2 = {
     },
     { key: 'rest2', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'day3', label: 'Day 3 (Hypertrophy & Core)', focus: 'MIXED', accent: '#9b72cf',
+      key: 'day3', label: 'Day 3', focus: 'MIXED', accent: '#9b72cf',
       exercises: [
         { ...findEx('hack-squat'), sets: genSets(4, '10', '2m', 70, 0) },
         { ...findEx('flat-db-bench'), sets: genSets(3, '10', '90s', 30, 0) },

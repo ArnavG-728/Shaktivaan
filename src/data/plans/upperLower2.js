@@ -7,7 +7,7 @@ export const UPPER_LOWER_2 = {
   description: 'A 4-day split engineered entirely for muscle growth. Higher reps, more isolation, shorter rests, and constant tension.',
   days: [
     {
-      key: 'upper1', label: 'Upper 1 (Chest/Back Thicken)', focus: 'HYPERTROPHY', accent: '#e5534b',
+      key: 'upper1', label: 'Upper 1', focus: 'HYPERTROPHY', accent: '#e5534b',
       exercises: [
         { ...findEx('incline-machine-press'), sets: genSets(4, '12', '60s', 40, 0) },
         { ...findEx('t-bar-row'), sets: genSets(4, '12', '75s', 35, 0) },
@@ -18,7 +18,7 @@ export const UPPER_LOWER_2 = {
       ]
     },
     {
-      key: 'lower1', label: 'Lower 1 (Quad/Glute Focus)', focus: 'HYPERTROPHY', accent: '#3db88a',
+      key: 'lower1', label: 'Lower 1', focus: 'HYPERTROPHY', accent: '#3db88a',
       exercises: [
         { ...findEx('hack-squat'), sets: genSets(4, '12', '90s', 50, 0) },
         { ...findEx('bulgarian-split-squat'), sets: genSets(3, '12', '75s', 10, 0) },
@@ -29,7 +29,7 @@ export const UPPER_LOWER_2 = {
     },
     { key: 'rest1', label: 'Rest', focus: 'RECOVERY', accent: '#333', exercises: [], rest: true },
     {
-      key: 'upper2', label: 'Upper 2 (Shoulder/Arm Focus)', focus: 'HYPERTROPHY', accent: '#4e9eed',
+      key: 'upper2', label: 'Upper 2', focus: 'HYPERTROPHY', accent: '#4e9eed',
       exercises: [
         { ...findEx('arnold-press'), sets: genSets(4, '12', '75s', 15, 0) },
         { ...findEx('lat-pulldown'), sets: genSets(4, '12', '75s', 50, 0) },
@@ -40,7 +40,7 @@ export const UPPER_LOWER_2 = {
       ]
     },
     {
-      key: 'lower2', label: 'Lower 2 (Hamstring/Calf Focus)', focus: 'HYPERTROPHY', accent: '#9b72cf',
+      key: 'lower2', label: 'Lower 2', focus: 'HYPERTROPHY', accent: '#9b72cf',
       exercises: [
         { ...findEx('stiff-leg-deadlift'), sets: genSets(4, '10', '90s', 60, 0) },
         { ...findEx('leg-press'), sets: genSets(4, '15', '90s', 110, 0) },
