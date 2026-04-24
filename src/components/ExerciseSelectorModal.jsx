@@ -12,9 +12,9 @@ function FilterIcon({ size = 16, color = 'currentColor' }) {
 }
 
 const EMG_OPTS = ['HIGH EMG', 'STRETCH-LOADED', 'CONSTANT TENSION']
-const TYPE_OPTS = ['compound', 'isolation']
+const TYPE_OPTS = ['compound', 'isolation', 'CUSTOM']
 const EMG_COLOR = { 'HIGH EMG': 'var(--green)', 'STRETCH-LOADED': 'var(--gold)', 'CONSTANT TENSION': 'var(--blue)' }
-const TYPE_COLOR = { compound: 'var(--orange)', isolation: 'var(--purple)' }
+const TYPE_COLOR = { compound: 'var(--orange)', isolation: 'var(--purple)', CUSTOM: 'var(--green)' }
 
 function FilterDrawer({ muscles, types, emgs, setMuscles, setTypes, setEmgs, onClose }) {
   const drawerRef = useRef(null)
@@ -106,6 +106,7 @@ export default function ExerciseSelectorModal({ allExercises = EXERCISES, onSele
   const [mounted, setMounted] = useState(false)
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedExs, setSelectedExs] = useState([])
   
   const [activeMuscles, setActiveMuscles] = useState([])
   const [activeTypes, setActiveTypes] = useState([])
@@ -118,7 +119,9 @@ export default function ExerciseSelectorModal({ allExercises = EXERCISES, onSele
   const filtered = useMemo(() => {
     return allExercises.filter(ex => {
       const matchMuscle = activeMuscles.length === 0 || activeMuscles.includes(ex.muscleGroup)
-      const matchType = activeTypes.length === 0 || activeTypes.includes(ex.type) || (activeTypes.length === 0 && ex.badge === 'CUSTOM')
+      const matchType = activeTypes.length === 0 
+        ? true 
+        : (activeTypes.includes(ex.type) || (activeTypes.includes('CUSTOM') && ex.badge === 'CUSTOM'))
       const matchEmg = activeEmgs.length === 0 || activeEmgs.includes(ex.emgNote)
       const matchSearch = !search || ex.name.toLowerCase().includes(search.toLowerCase()) || (ex.targets && ex.targets.toLowerCase().includes(search.toLowerCase()))
       return matchMuscle && matchType && matchEmg && matchSearch
@@ -166,7 +169,7 @@ export default function ExerciseSelectorModal({ allExercises = EXERCISES, onSele
           </div>
         )}
 
-        <div className="ex-list">
+        <div className="ex-list" style={{ paddingBottom: 80 }}>
           {filtered.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🔍</div>
@@ -184,15 +187,16 @@ export default function ExerciseSelectorModal({ allExercises = EXERCISES, onSele
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {grouped[group].map((ex, i) => {
                     const color = MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)'
+                    const isSelected = selectedExs.includes(ex.name)
                     return (
-                      <div key={ex.id || i} onClick={() => onSelect(ex.name)} style={{ background: 'var(--bg2)', padding: '12px 16px', borderRadius: 'var(--radius)', borderLeft: `3px solid ${color}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div key={ex.id || i} onClick={() => setSelectedExs(prev => prev.includes(ex.name) ? prev.filter(n => n !== ex.name) : [...prev, ex.name])} style={{ background: isSelected ? 'var(--bg3)' : 'var(--bg2)', padding: '12px 16px', borderRadius: 'var(--radius)', borderLeft: `3px solid ${color}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <div style={{ color: 'var(--text)', fontWeight: 600, fontSize: 15, marginBottom: 2 }}>{ex.name}</div>
                           <div style={{ color: 'var(--text5)', fontSize: 12 }}>{ex.targets}</div>
                         </div>
-                        <button style={{ background: 'none', border: `1px solid ${color}`, color: color, borderRadius: 20, padding: '4px 12px', fontSize: 11, fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
-                          ADD
-                        </button>
+                        <div style={{ width: 20, height: 20, borderRadius: '50%', border: `1px solid ${isSelected ? color : 'var(--text5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isSelected ? color : 'transparent' }}>
+                          {isSelected && <span style={{ color: '#000', fontSize: 12, fontWeight: 'bold' }}>✓</span>}
+                        </div>
                       </div>
                     )
                   })}
@@ -201,6 +205,12 @@ export default function ExerciseSelectorModal({ allExercises = EXERCISES, onSele
             ))
           )}
         </div>
+      </div>
+      
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 20px', background: 'var(--bg2)', borderTop: '1px solid var(--border)', zIndex: 10 }}>
+        <button onClick={() => selectedExs.length > 0 ? onSelect(selectedExs) : onClose()} style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius)', background: selectedExs.length > 0 ? 'var(--gold)' : 'var(--bg3)', color: selectedExs.length > 0 ? '#000' : 'var(--text4)', border: 'none', fontFamily: 'var(--font-head)', fontSize: 16, cursor: 'pointer', fontWeight: 800 }}>
+          {selectedExs.length > 0 ? `ADD ${selectedExs.length} EXERCISE${selectedExs.length > 1 ? 'S' : ''}` : 'CANCEL'}
+        </button>
       </div>
       
       {drawerOpen && <FilterDrawer muscles={activeMuscles} types={activeTypes} emgs={activeEmgs} setMuscles={setActiveMuscles} setTypes={setActiveTypes} setEmgs={setActiveEmgs} onClose={() => setDrawerOpen(false)} />}

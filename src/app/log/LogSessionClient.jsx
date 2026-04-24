@@ -104,15 +104,16 @@ function GlobalRestTimer({ endsAt, onSkip, onAdd15 }) {
   )
 }
 
-function SetLogger({ set, currentSetData, exerciseName, prevSet, accent, onUpdate, isWarmup, onToggleWarmup, onRemoveSet, onStartTimer }) {
+function SetLogger({ set, currentSetData, exerciseName, prevSet, accent, onUpdate, isWarmup, onToggleWarmup, onRemoveSet, onStartTimer, exNote }) {
   const [weight, setWeight] = useState(currentSetData?.weight ?? prevSet?.weight ?? '')
   const [reps, setReps] = useState(currentSetData?.reps ?? prevSet?.reps ?? '')
   const [rpe, setRpe] = useState(currentSetData?.rpe ?? null)
   const [done, setDone] = useState(currentSetData?.done ?? false)
+  const [isBodyweight, setIsBodyweight] = useState(currentSetData?.isBodyweight ?? false)
 
   useEffect(() => {
-    onUpdate({ setNum: set.n, exerciseName, weight, reps, rpe, done, isWarmup })
-  }, [weight, reps, rpe, done, isWarmup])
+    onUpdate({ setNum: set.n, exerciseName, weight, reps, rpe, done, isWarmup, isBodyweight, exNote })
+  }, [weight, reps, rpe, done, isWarmup, isBodyweight, exNote])
 
   const handleDone = () => {
     if (!done) {
@@ -128,17 +129,23 @@ function SetLogger({ set, currentSetData, exerciseName, prevSet, accent, onUpdat
   return (
     <div style={{ borderLeft: isWarmup ? '2px solid var(--blue)' : 'none', paddingLeft: isWarmup ? 8 : 0, marginBottom: 2 }}>
       <div className="log-set-row" style={{ gridTemplateColumns: '24px 1fr 1fr 60px 40px' }}>
-        <button
-          onClick={onToggleWarmup}
-          title={isWarmup ? 'Warm-up set (click to make working set)' : 'Working set (click to make warm-up)'}
-          style={{ fontFamily: 'var(--font-mono)', fontSize: 9, cursor: 'pointer', border: 'none', background: 'transparent', padding: 0, color: isWarmup ? 'var(--blue)' : 'var(--text5)', letterSpacing: '0.06em', textAlign: 'left', lineHeight: 1.2 }}>
-          {isWarmup ? `W${set.n}` : `S${set.n}`}
-        </button>
-        <input
-          className={`log-input ${!weight && prevSet?.weight ? 'prev' : ''}`}
-          placeholder={prevSet?.weight ? String(prevSet.weight) : set.kg ? String(set.kg) : 'kg'}
-          value={weight} onChange={e => setWeight(e.target.value)} type="number" step="0.5"
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'center' }}>
+          <button
+            onClick={onToggleWarmup}
+            title={isWarmup ? 'Warm-up set (click to make working set)' : 'Working set (click to make warm-up)'}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: 9, cursor: 'pointer', border: 'none', background: 'transparent', padding: 0, color: isWarmup ? 'var(--blue)' : 'var(--text5)', letterSpacing: '0.06em', textAlign: 'left', lineHeight: 1.2 }}>
+            {isWarmup ? `W${set.n}` : `S${set.n}`}
+          </button>
+        </div>
+        <div style={{ position: 'relative', display: 'flex', width: '100%' }}>
+          {isBodyweight && <span style={{ position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)', pointerEvents: 'none' }}>+</span>}
+          <input
+            className={`log-input ${!weight && prevSet?.weight ? 'prev' : ''}`}
+            style={{ paddingLeft: isBodyweight ? 14 : undefined, width: '100%' }}
+            placeholder={prevSet?.weight ? String(prevSet.weight) : set.kg ? String(set.kg) : 'kg'}
+            value={weight} onChange={e => setWeight(e.target.value)} type="number" step="0.5"
+          />
+        </div>
         <input
           className={`log-input ${!reps && prevSet?.reps ? 'prev' : ''}`}
           placeholder={prevSet?.reps ? String(prevSet.reps) : String(set.reps)}
@@ -153,6 +160,11 @@ function SetLogger({ set, currentSetData, exerciseName, prevSet, accent, onUpdat
             <button onClick={onRemoveSet} style={{ background: 'transparent', border: 'none', color: 'var(--red)', fontSize: 13, cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>×</button>
           )}
         </div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', paddingLeft: 32, marginTop: 4, marginBottom: 8 }}>
+        <button onClick={() => setIsBodyweight(prev => !prev)} style={{ background: isBodyweight ? 'var(--green)' : 'var(--bg3)', border: 'none', color: isBodyweight ? '#000' : 'var(--text5)', fontSize: 9, fontFamily: 'var(--font-mono)', padding: '3px 8px', borderRadius: 4, cursor: 'pointer', fontWeight: isBodyweight ? 'bold' : 'normal' }}>
+          {isBodyweight ? '✓ BW (+ADDED)' : '+ BODYWEIGHT'}
+        </button>
       </div>
 
       {(prevSet?.weight || prevSet?.reps) && (
@@ -175,14 +187,14 @@ function SetLogger({ set, currentSetData, exerciseName, prevSet, accent, onUpdat
   )
 }
 
-function ExerciseLogger({ ex, sessionSets, prevSession, pastSessions, accent, onSetUpdate, onAddSet, onRemoveLastSet, onStartTimer }) {
+function ExerciseLogger({ ex, sessionSets, prevSession, pastSessions, accent, onSetUpdate, onAddSet, onRemoveLastSet, onRemoveExercise, onStartTimer }) {
   const [open, setOpen] = useState(true)
   const [warmupSets, setWarmupSets] = useState({})
 
   // Find the most recent note for this exercise in past sessions
   const historicalNote = useMemo(() => {
     if (!pastSessions) return null
-    for (const session of pastSessions) {
+    for (const session of [...pastSessions].sort((a,b) => new Date(b.date) - new Date(a.date))) {
       if (!session.sets) continue
       const setWithNote = session.sets.find(s => s.exerciseName === ex.name && s.exNote)
       if (setWithNote) return setWithNote.exNote
@@ -217,6 +229,7 @@ function ExerciseLogger({ ex, sessionSets, prevSession, pastSessions, accent, on
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button onClick={e => { e.stopPropagation(); setShowExNote(n => !n) }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 14, color: exNote ? 'var(--gold)' : 'var(--text5)', padding: '4px' }} title="Exercise note">{exNote ? '📝' : '💬'}</button>
+          <button onClick={e => { e.stopPropagation(); if (confirm(`Remove ${ex.name} from session?`)) onRemoveExercise(ex.id) }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--red)', padding: '4px' }} title="Remove Exercise">🗑️</button>
           <div className="ex-toggle">▾</div>
         </div>
       </div>
@@ -250,6 +263,7 @@ function ExerciseLogger({ ex, sessionSets, prevSession, pastSessions, accent, on
               onRemoveSet={si === ex.sets.length - 1 ? () => onRemoveLastSet(ex.id) : null}
               onUpdate={data => onSetUpdate({ ...data, isWarmup: !!warmupSets[si], exNote })}
               onStartTimer={onStartTimer}
+              exNote={exNote}
             />
           ))}
 
@@ -265,8 +279,12 @@ function ExerciseLogger({ ex, sessionSets, prevSession, pastSessions, accent, on
   )
 }
 
-function PlanDaySelector({ plans, onSelect, onRestDay }) {
-  const [planIdx, setPlanIdx] = useState(0)
+function PlanDaySelector({ plans, onSelect, onRestDay, initialPlanIdx = 0 }) {
+  const [planIdx, setPlanIdx] = useState(initialPlanIdx)
+
+  useEffect(() => {
+    setPlanIdx(initialPlanIdx)
+  }, [initialPlanIdx])
   const plan = plans[planIdx]
   const workoutDays = plan?.days.filter(d => !d.rest && d.exercises?.length > 0) || []
 
@@ -328,11 +346,15 @@ export default function LogSession({ onSessionSaved }) {
 
   const timerRef = useRef(null)
 
+  const [initialPlanIdx, setInitialPlanIdx] = useState(0)
+
   // ── Persistence ──────────────────────────────────────────────────────────
   useEffect(() => {
     try {
-      setPlans(JSON.parse(localStorage.getItem('gymlogger_plans') || '[]'))
-      setAllExercises([...EXERCISES].sort((a, b) => a.name.localeCompare(b.name)))
+      const storedPlans = JSON.parse(localStorage.getItem('gymlogger_plans') || '[]')
+      setPlans(storedPlans)
+      const customEx = JSON.parse(localStorage.getItem('gymlogger_custom_exercises') || '[]')
+      setAllExercises([...EXERCISES, ...customEx].sort((a, b) => a.name.localeCompare(b.name)))
     } catch { }
   }, [])
 
@@ -341,6 +363,16 @@ export default function LogSession({ onSessionSaved }) {
     try {
       const storedSessions = JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')
       setPastSessions(storedSessions)
+      
+      const storedPlans = JSON.parse(localStorage.getItem('gymlogger_plans') || '[]')
+      if (storedSessions.length > 0 && storedPlans.length > 0) {
+        const sortedSessions = [...storedSessions].sort((a, b) => new Date(b.date) - new Date(a.date))
+        const lastPlanId = sortedSessions[0]?.planId
+        if (lastPlanId) {
+          const idx = storedPlans.findIndex(p => p.id === lastPlanId)
+          if (idx !== -1) setInitialPlanIdx(idx)
+        }
+      }
 
       const active = JSON.parse(localStorage.getItem('gymlogger_active_session'))
       if (active && active.phase === 'active' && active.sessionSets?.length > 0) {
@@ -402,7 +434,12 @@ export default function LogSession({ onSessionSaved }) {
   }, [])
 
   const handleRestDay = useCallback(() => {
-    const session = { id: genId(), date: new Date().toISOString(), planId: 'rest', dayLabel: 'Rest Day', isRest: true, duration: 0, totalTonnage: 0, sets: [], sessionNote: 'Taking a clear rest day.' }
+    let baseDate = new Date()
+    if (sessionMode === 'past') {
+      const [y, m, d] = sessionDate.split('-').map(Number)
+      baseDate = new Date(y, m - 1, d, 12, 0, 0)
+    }
+    const session = { id: genId(), date: baseDate.toISOString(), planId: 'rest', dayLabel: 'Rest Day', isRest: true, duration: 0, totalTonnage: 0, sets: [], sessionNote: 'Taking a clear rest day.' }
     try {
       const existing = JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')
       localStorage.setItem('gymlogger_sessions', JSON.stringify([...existing, session]))
@@ -425,15 +462,17 @@ export default function LogSession({ onSessionSaved }) {
     })
   }, [])
 
-  const addExerciseToFreestyle = (exName) => {
-    if (!exName) return
-    const matched = allExercises.find(e => e.name === exName) || { name: exName }
-    const newEx = {
-      id: genId(), name: matched.name, badge: matched.badge, targets: matched.targets,
-      cues: matched.cues, emgNote: matched.emgNote, prog: matched.prog, sciNote: matched.sciNote,
-      sets: [{ n: 1, reps: matched.repRange || 8, rest: matched.restRange || '90s', kg: '' }]
-    }
-    setSelectedDay(prev => ({ ...prev, exercises: [...prev.exercises, newEx] }))
+  const addExerciseToFreestyle = (exNames) => {
+    if (!exNames || !exNames.length) return
+    const newExs = exNames.map(exName => {
+      const matched = allExercises.find(e => e.name === exName) || { name: exName }
+      return {
+        id: genId(), name: matched.name, badge: matched.badge, targets: matched.targets,
+        cues: matched.cues, emgNote: matched.emgNote, prog: matched.prog, sciNote: matched.sciNote,
+        sets: [{ n: 1, reps: matched.repRange || 8, rest: matched.restRange || '90s', kg: '' }]
+      }
+    })
+    setSelectedDay(prev => ({ ...prev, exercises: [...prev.exercises, ...newExs] }))
   }
 
   const addSetToExercise = (exId) => {
@@ -465,14 +504,27 @@ export default function LogSession({ onSessionSaved }) {
     })
   }
 
+  const removeExerciseFromSession = useCallback((exId) => {
+    setSelectedDay(prev => {
+      const idx = prev.exercises.findIndex(e => e.id === exId)
+      if (idx < 0) return prev
+      const removedExName = prev.exercises[idx].name
+      setSessionSets(s => s.filter(set => set.exerciseName !== removedExName))
+      return { ...prev, exercises: prev.exercises.filter(e => e.id !== exId) }
+    })
+  }, [])
+
   const handleFinish = useCallback(() => {
     const duration = Date.now() - startTime
     const doneSets = sessionSets.filter(s => s.done)
     const workingSets = doneSets.filter(s => !s.isWarmup)
     const totalTonnage = workingSets.reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0)
 
-    const baseDate = sessionMode === 'past' ? new Date(sessionDate) : new Date()
-    if (sessionMode === 'past') baseDate.setHours(12, 0, 0, 0)
+    let baseDate = new Date()
+    if (sessionMode === 'past') {
+      const [y, m, d] = sessionDate.split('-').map(Number)
+      baseDate = new Date(y, m - 1, d, 12, 0, 0)
+    }
 
     const session = { id: genId(), date: baseDate.toISOString(), planId: selectedPlan.id, dayLabel: selectedDay.label, duration, totalTonnage, sets: doneSets, sessionNote }
     try {
@@ -593,8 +645,7 @@ export default function LogSession({ onSessionSaved }) {
             </div>
           )}
 
-          <PlanDaySelector plans={plans} onSelect={handleSelectDay} onRestDay={handleRestDay} />
-          <SessionHistory pastSessions={pastSessions} />
+          <PlanDaySelector plans={plans} onSelect={handleSelectDay} onRestDay={handleRestDay} initialPlanIdx={initialPlanIdx} />
         </>
       )}
 
@@ -632,6 +683,7 @@ export default function LogSession({ onSessionSaved }) {
             <ExerciseLogger
               key={`${ex.id}-${selectedDay._copyKey || 0}`} ex={ex} sessionSets={sessionSets} prevSession={prevSession} pastSessions={pastSessions} accent={accent}
               onSetUpdate={handleSetUpdate} onAddSet={addSetToExercise} onRemoveLastSet={removeLastSetFromExercise}
+              onRemoveExercise={removeExerciseFromSession}
               onStartTimer={sessionMode === 'live' ? (sec) => setActiveTimer({ endsAt: Date.now() + sec * 1000 }) : undefined}
             />
           ))}
@@ -681,236 +733,3 @@ export default function LogSession({ onSessionSaved }) {
   )
 }
 
-const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-
-function fmtDur(ms) {
-  if (!ms) return '–'
-  const m = Math.round(ms / 60000)
-  if (m >= 60) return `${Math.floor(m / 60)}h ${m % 60}m`
-  return `${m}m`
-}
-
-function groupSets(sets) {
-  const groups = []
-  for (const s of sets || []) {
-    let g = groups.find(g => g.name === s.exerciseName)
-    if (!g) { g = { name: s.exerciseName, sets: [] }; groups.push(g) }
-    g.sets.push(s)
-  }
-  return groups
-}
-
-function getAccent(dayLabel = '') {
-  if (!dayLabel) return 'var(--gold)'
-  if (dayLabel.toLowerCase().includes('push')) return 'var(--red)'
-  if (dayLabel.toLowerCase().includes('pull')) return 'var(--blue)'
-  if (dayLabel.toLowerCase().includes('leg')) return 'var(--green)'
-  return 'var(--gold)'
-}
-
-function buildWeekStrip(sessions) {
-  const today = new Date()
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(today.getDate() - (6 - i))
-    const iso = d.toISOString().split('T')[0]
-    return {
-      day: DAYS[d.getDay()],
-      session: sessions.find(s => s.date?.split('T')[0] === iso) || null,
-    }
-  })
-}
-
-function Pill({ children, color }) {
-  const colorMap = {
-    green: { bg: 'rgba(74,222,128,0.1)', text: 'var(--green)' },
-    gold: { bg: 'rgba(232,184,75,0.1)', text: 'var(--gold)' },
-    blue: { bg: 'rgba(96,165,250,0.1)', text: 'var(--blue)' },
-    red: { bg: 'rgba(229,83,75,0.1)', text: 'var(--red)' },
-  }
-  const { bg, text } = colorMap[color] || colorMap.gold
-  return (
-    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 3, background: bg, color: text, textTransform: 'uppercase' }}>
-      {children}
-    </span>
-  )
-}
-
-function SessionHistory({ pastSessions }) {
-  const [openId, setOpenId] = useState(null)
-
-  const sorted = useMemo(() => {
-    return [...(pastSessions || [])].sort((a, b) => {
-      const dateA = new Date(a.date)
-      const dateB = new Date(b.date)
-      if (dateB - dateA !== 0) return dateB - dateA
-      return (b.id || "").localeCompare(a.id || "")
-    })
-  }, [pastSessions])
-  const weekStrip = useMemo(() => buildWeekStrip(pastSessions || []), [pastSessions])
-
-  const totalWorkouts = sorted.filter(s => !s.isRest).length
-  const totalTonnage = sorted.reduce((sum, s) => sum + (s.totalTonnage || 0), 0)
-  const totalSets = sorted.reduce((sum, s) => sum + (s.sets?.length || 0), 0)
-
-  const maxTonnage = Math.max(...weekStrip.map(d => d.session?.totalTonnage || 0), 1)
-
-  if (!pastSessions || pastSessions.length === 0) return null
-
-  return (
-    <div style={{ marginTop: 40 }}>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 20 }}>
-        <div style={{ fontFamily: 'var(--font-head)', fontSize: 32, letterSpacing: '0.04em', color: 'var(--gold)', lineHeight: 1 }}>
-          SESSION HISTORY
-        </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.12em', padding: '3px 8px', border: '1px solid var(--border)', borderRadius: 4, background: 'var(--bg3)' }}>
-          {sorted.length} ENTRIES
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
-        {[
-          { val: totalWorkouts, lbl: 'WORKOUTS', color: 'var(--green)' },
-          { val: totalTonnage > 1000 ? `${(totalTonnage / 1000).toFixed(1)}t` : `${Math.round(totalTonnage)}kg`, lbl: 'TONNAGE', color: 'var(--gold)' },
-          { val: totalSets, lbl: 'SETS DONE', color: 'var(--blue)' },
-        ].map(({ val, lbl, color }) => (
-          <div key={lbl} style={{ background: 'var(--bg2)', padding: '12px 14px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 26, letterSpacing: '0.04em', color, lineHeight: 1, marginBottom: 3 }}>{val}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text5)', letterSpacing: '0.1em' }}>{lbl}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, alignItems: 'flex-end' }}>
-        {weekStrip.map((d, i) => {
-          const hasSession = d.session && !d.session.isRest
-          const isRest = d.session?.isRest
-          const height = hasSession
-            ? Math.max(18, Math.round((d.session.totalTonnage / maxTonnage) * 44))
-            : isRest ? 6 : 4
-          const color = hasSession ? getAccent(d.session.dayLabel) : isRest ? 'rgba(96,165,250,0.3)' : 'var(--bg4)'
-          return (
-            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: '100%', height, background: color, borderRadius: 3, opacity: hasSession ? 1 : 0.5, transition: 'all 0.3s' }} />
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: hasSession ? color : 'var(--text5)', letterSpacing: '0.04em' }}>{d.day}</div>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="history-scroll-container" style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
-        {sorted.map(session => {
-          const isOpen = openId === session.id
-          const dateObj = new Date(session.date)
-          const dayNum = dateObj.getDate()
-          const mon = dateObj.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase()
-          const dow = DAYS[dateObj.getDay()]
-          const accent = getAccent(session.dayLabel)
-          const groups = groupSets(session.sets)
-          const workingSets = (session.sets || []).filter(s => !s.isWarmup)
-
-          const muscles = new Set()
-          session.sets?.forEach(s => {
-            const name = s.exerciseName.toLowerCase()
-            if (name.includes('chest') || name.includes('press') || name.includes('push')) muscles.add('🛡️')
-            if (name.includes('back') || name.includes('row') || name.includes('pull')) muscles.add('🛶')
-            if (name.includes('squat') || name.includes('leg') || name.includes('calf')) muscles.add('🍗')
-            if (name.includes('curl') || name.includes('ext')) muscles.add('🦾')
-            if (name.includes('lateral') || name.includes('face') || name.includes('raise')) muscles.add('⚡')
-          })
-
-          return (
-            <div key={session.id} style={{ borderRadius: 10, border: `1px solid ${isOpen ? 'rgba(232,184,75,0.25)' : 'var(--border)'}`, overflow: 'hidden', background: 'var(--bg2)', transition: 'border-color 0.2s', flexShrink: 0 }}>
-              <div
-                onClick={() => setOpenId(id => id === session.id ? null : session.id)}
-                style={{ display: 'grid', gridTemplateColumns: '56px 1fr auto', cursor: 'pointer', alignItems: 'stretch' }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '14px 8px', background: 'var(--bg3)', borderRight: '1px solid var(--border)', gap: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-head)', fontSize: 24, lineHeight: 1, color: accent }}>{dayNum}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '0.1em', color: 'var(--text5)' }}>{mon}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: 'var(--text5)', letterSpacing: '0.04em', marginTop: 2 }}>{dow}</div>
-                </div>
-
-                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, letterSpacing: '0.04em', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1 }}>
-                    {session.isRest ? 'REST DAY' : session.dayLabel || 'Custom Session'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                    {session.isRest ? (
-                      <Pill color="blue">RECOVERY</Pill>
-                    ) : (
-                      <>
-                        <Pill color="green">{workingSets.length} SETS</Pill>
-                        <Pill color="gold">{fmtDur(session.duration)}</Pill>
-                        {muscles.size > 0 && <span style={{ fontSize: 10, marginLeft: 2, filter: 'saturate(0.5)' }}>{Array.from(muscles).slice(0, 4).join(' ')}</span>}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', padding: '12px 14px', gap: 3 }}>
-                  {session.isRest ? (
-                    <div style={{ fontSize: 18 }}>🛌</div>
-                  ) : (
-                    <>
-                      <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, letterSpacing: '0.04em', color: 'var(--gold)', lineHeight: 1 }}>
-                        {session.totalTonnage > 1000 ? (session.totalTonnage / 1000).toFixed(1) : Math.round(session.totalTonnage || 0)}
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', marginLeft: 2 }}>{session.totalTonnage > 1000 ? 't' : 'kg'}</span>
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text5)', letterSpacing: '0.08em' }}>TONNAGE</div>
-                    </>
-                  )}
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: isOpen ? 'var(--gold)' : 'var(--text5)', marginTop: 4, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s, color 0.2s' }}>▾</div>
-                </div>
-              </div>
-
-              {isOpen && (
-                <div style={{ borderTop: '1px solid var(--border)', padding: 16 }}>
-                  {session.sessionNote && (
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'rgba(96,165,250,0.05)', borderLeft: '2px solid var(--blue)', borderRadius: 6, marginBottom: 14 }}>
-                      <div style={{ fontSize: 13, flexShrink: 0 }}>💬</div>
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 4 }}>SESSION NOTE</div>
-                        <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.6 }}>"{session.sessionNote}"</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {session.isRest ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 14, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text4)', letterSpacing: '0.08em' }}>
-                      🛌 Rest day logged — recovery in progress
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {groups.map((g, gi) => (
-                        <div key={gi} style={{ borderLeft: '1px solid var(--border2)', paddingLeft: 12 }}>
-                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--green)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>
-                            {g.name}
-                          </div>
-                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                            {g.sets.map((s, si) => (
-                              <div key={si} style={{ padding: '4px 8px', background: 'var(--bg3)', border: `1px solid ${s.isWarmup ? 'rgba(96,165,250,0.2)' : 'var(--border)'}`, borderRadius: 5, fontFamily: 'var(--font-mono)', fontSize: 10, color: s.isWarmup ? 'rgba(96,165,250,0.6)' : 'var(--text3)', whiteSpace: 'nowrap' }}>
-                                <span style={{ color: 'var(--text5)', marginRight: 4 }}>{si + 1}</span>
-                                {s.weight || 0}kg × {s.reps || 0}
-                              </div>
-                            ))}
-                          </div>
-                          {Array.from(new Set(g.sets.map(s => s.exNote).filter(Boolean))).map((note, ni) => (
-                            <div key={ni} style={{ marginTop: 6, fontSize: 10, color: 'var(--gold)', opacity: 0.8, fontStyle: 'italic' }}>
-                              → {note}
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}

@@ -15,10 +15,10 @@ function FilterIcon({ size = 16, color = 'currentColor' }) {
 }
 
 const EMG_OPTS = ['HIGH EMG', 'STRETCH-LOADED', 'CONSTANT TENSION']
-const TYPE_OPTS = ['compound', 'isolation']
+const TYPE_OPTS = ['compound', 'isolation', 'CUSTOM']
 const EMG_COLOR = { 'HIGH EMG': 'var(--green)', 'STRETCH-LOADED': 'var(--gold)', 'CONSTANT TENSION': 'var(--blue)' }
 const EMG_DIM   = { 'HIGH EMG': 'var(--green-dim)', 'STRETCH-LOADED': 'var(--gold-dim)', 'CONSTANT TENSION': 'var(--blue-dim)' }
-const TYPE_COLOR = { compound: 'var(--orange)', isolation: 'var(--purple)' }
+const TYPE_COLOR = { compound: 'var(--orange)', isolation: 'var(--purple)', CUSTOM: 'var(--green)' }
 const TYPE_DIM   = { compound: 'var(--orange-dim)', isolation: 'var(--purple-dim)' }
 
 /* ─── Filter Drawer ─────────────────────────────────────────────────────── */
@@ -114,8 +114,18 @@ function Pill({ label, color, onRemove }) {
 }
 
 /* ─── Exercise Card ──────────────────────────────────────────────────────── */
-function ExerciseCard({ ex, accent, onEdit, onDelete }) {
+function ExerciseCard({ ex, accent, onEdit, onDelete, pastSessions }) {
   const [open, setOpen] = useState(false)
+
+  const historicalNote = useMemo(() => {
+    if (!pastSessions || !pastSessions.length) return null
+    for (const session of [...pastSessions].sort((a, b) => new Date(b.date) - new Date(a.date))) {
+      if (!session.sets) continue
+      const setWithNote = session.sets.find(s => s.exerciseName === ex.name && s.exNote)
+      if (setWithNote) return setWithNote.exNote
+    }
+    return null
+  }, [pastSessions, ex.name])
   return (
     <div className={`ex-card ${open ? 'open' : ''}`} style={{ '--accent': accent }}>
       <div className="ex-head" onClick={() => setOpen(o => !o)}>
@@ -151,6 +161,12 @@ function ExerciseCard({ ex, accent, onEdit, onDelete }) {
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: accent }}>{ex.restRange || '60–90s'}</div>
             </div>
           </div>
+          {historicalNote && (
+            <div style={{ marginBottom: 12, padding: '8px 12px', background: 'var(--bg)', borderLeft: `2px solid ${accent}`, borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em', marginBottom: 4 }}>RECENT PERSONAL NOTE</div>
+              <div style={{ fontSize: 12, color: 'var(--text3)', fontStyle: 'italic' }}>"{historicalNote}"</div>
+            </div>
+          )}
           {ex.sciNote && (
             <div className="sci-box" style={{ borderLeftColor: accent }}>
               <div className="sci-label" style={{ color: accent }}>⚗ SCIENCE</div>
@@ -259,10 +275,15 @@ function CreateCustomModal({ initialData, onSave, onClose }) {
 export default function ExerciseList() {
   const [allExercises, setAllExercises] = useState([...EXERCISES])
   
-  // Re-sync if EXERCISES changes (like from Fast Refresh after an HTTP post)
+  const [pastSessions, setPastSessions] = useState([])
+
   useEffect(() => {
-    setAllExercises([...EXERCISES].sort((a,b) => a.name.localeCompare(b.name)))
-  }, [EXERCISES])
+    try {
+      const customEx = JSON.parse(localStorage.getItem('gymlogger_custom_exercises') || '[]')
+      setAllExercises([...EXERCISES, ...customEx].sort((a,b) => a.name.localeCompare(b.name)))
+      setPastSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
+    } catch {}
+  }, [])
 
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -288,30 +309,22 @@ export default function ExerciseList() {
     
     setEditingEx(null)
 
-    // Save directly to backend file!
+    // Save directly to localStorage!
     try {
-      await fetch('/api/custom-exercises', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exercises: updatedCustom })
-      })
+      localStorage.setItem('gymlogger_custom_exercises', JSON.stringify(updatedCustom))
     } catch {}
   }
 
   const handleDeleteCustom = async (exId) => {
-    if (!confirm('Permanently delete this custom exercise? It will be removed from the internal file.')) return
+    if (!confirm('Permanently delete this custom exercise?')) return
     const customOnly = allExercises.filter(e => e.badge === 'CUSTOM' && e.id !== exId)
     
     // Optimistic UI update
     setAllExercises(prev => prev.filter(e => e.id !== exId))
     
-    // Save directly to backend file!
+    // Save directly to localStorage!
     try {
-      await fetch('/api/custom-exercises', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exercises: customOnly })
-      })
+      localStorage.setItem('gymlogger_custom_exercises', JSON.stringify(customOnly))
     } catch {}
   }
 
@@ -320,7 +333,9 @@ export default function ExerciseList() {
   const filtered = useMemo(() => {
     return allExercises.filter(ex => {
       const matchMuscle = activeMuscles.length === 0 || activeMuscles.includes(ex.muscleGroup)
-      const matchType = activeTypes.length === 0 || activeTypes.includes(ex.type) || (activeTypes.length === 0 && ex.badge === 'CUSTOM')
+      const matchType = activeTypes.length === 0 
+        ? true 
+        : (activeTypes.includes(ex.type) || (activeTypes.includes('CUSTOM') && ex.badge === 'CUSTOM'))
       const matchEmg = activeEmgs.length === 0 || activeEmgs.includes(ex.emgNote)
       const matchSearch = !search || ex.name.toLowerCase().includes(search.toLowerCase()) || (ex.targets && ex.targets.toLowerCase().includes(search.toLowerCase()))
       return matchMuscle && matchType && matchEmg && matchSearch
@@ -389,7 +404,7 @@ export default function ExerciseList() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {grouped[group].map((ex, i) => (
-                  <ExerciseCard key={ex.id || i} ex={ex} accent={MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)'} onEdit={setEditingEx} onDelete={handleDeleteCustom} />
+                  <ExerciseCard key={ex.id || i} ex={ex} accent={MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)'} onEdit={setEditingEx} onDelete={handleDeleteCustom} pastSessions={pastSessions} />
                 ))}
               </div>
             </div>
