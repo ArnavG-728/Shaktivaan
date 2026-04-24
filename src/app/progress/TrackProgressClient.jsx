@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, ReferenceLine, Cell
@@ -136,6 +137,166 @@ function Pill({ children, color }) {
   )
 }
 
+function SessionDetailModal({ session, onClose, onEditNote, onDeleteSession }) {
+  const [mounted, setMounted] = useState(false)
+  const [editingNote, setEditingNote] = useState(false)
+  const [editNoteText, setEditNoteText] = useState(session?.sessionNote || '')
+
+  useEffect(() => {
+    setMounted(true)
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = 'auto' }
+  }, [])
+
+  if (!mounted || !session) return null
+
+  const dateObj = new Date(session.date)
+  const dayNum = dateObj.getDate()
+  const mon = dateObj.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase()
+  const dow = DAYS[dateObj.getDay()]
+  const groups = groupSets(session.sets)
+  const workingSets = (session.sets || []).filter(s => !s.isWarmup)
+
+  const muscleCounts = {}
+  let totalWorking = 0
+  session.sets?.forEach(s => {
+    if (s.isWarmup) return
+    totalWorking++
+    const name = s.exerciseName.toLowerCase()
+    let m = 'Other'
+    if (name.includes('chest') || name.includes('press') || name.includes('push') || name.includes('pec')) m = 'Chest'
+    else if (name.includes('back') || name.includes('row') || name.includes('pull') || name.includes('lat')) m = 'Back'
+    else if (name.includes('squat') || name.includes('leg') || name.includes('calf') || name.includes('rdl')) m = 'Legs'
+    else if (name.includes('lateral') || name.includes('raise') || name.includes('delt')) m = 'Shoulders'
+    else if (name.includes('bicep') || name.includes('curl')) m = 'Biceps'
+    else if (name.includes('tricep') || name.includes('ext')) m = 'Triceps'
+    else if (name.includes('core') || name.includes('crunch') || name.includes('abs')) m = 'Core'
+    muscleCounts[m] = (muscleCounts[m] || 0) + 1
+  })
+  const mColors = { 'Chest': '#3b82f6', 'Back': '#10b981', 'Legs': '#f59e0b', 'Shoulders': '#8b5cf6', 'Biceps': '#ec4899', 'Triceps': '#a855f7', 'Core': '#eab308', 'Other': '#6b7280' }
+
+  let currentAngle = 0
+  const gradientStops = Object.entries(muscleCounts).map(([m, count]) => {
+    const percentage = (count / totalWorking) * 100
+    const color = mColors[m] || mColors.Other
+    const stop = `${color} ${currentAngle}% ${currentAngle + percentage}%`
+    currentAngle += percentage
+    return stop
+  }).join(', ')
+
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column', background: 'var(--bg)', animation: 'slideUp 0.15s ease' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, lineHeight: 1, padding: 0, color: 'var(--text3)', cursor: 'pointer', marginTop: -4 }}>×</button>
+          <div>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{session.isRest ? 'REST DAY' : session.dayLabel || 'Session'}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)', letterSpacing: '0.04em', marginTop: 2 }}>{dow}, {dayNum} {mon} {dateObj.getFullYear()}</div>
+          </div>
+        </div>
+        <button onClick={() => { onDeleteSession(session.id); onClose() }} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 16 }} title="Delete Session">🗑️</button>
+      </div>
+
+      <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
+        {!session.isRest && totalWorking > 0 && (
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center', marginBottom: 24, padding: 16, background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+            <div style={{ width: 80, height: 80, borderRadius: '50%', background: `conic-gradient(${gradientStops})`, flexShrink: 0, border: '4px solid var(--bg3)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {Object.entries(muscleCounts).sort((a, b) => b[1] - a[1]).map(([m, count]) => (
+                <div key={m} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: mColors[m] || mColors.Other }} />
+                    <span style={{ color: 'var(--text4)', textTransform: 'uppercase' }}>{m}</span>
+                  </div>
+                  <div style={{ color: 'var(--text)', fontWeight: 'bold' }}>{Math.round((count / totalWorking) * 100)}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {editingNote ? (
+          <div style={{ marginBottom: 24 }}>
+            <textarea value={editNoteText} onChange={e => setEditNoteText(e.target.value)} className="form-input" style={{ width: '100%', minHeight: 60, fontSize: 12, padding: 8, marginBottom: 8 }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { onEditNote(session.id, editNoteText); setEditingNote(false) }} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: 11 }}>Save</button>
+              <button onClick={() => setEditingNote(false)} className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 11 }}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 14px', background: 'rgba(96,165,250,0.05)', borderLeft: '2px solid var(--blue)', borderRadius: 6, marginBottom: 24 }}>
+            <div style={{ fontSize: 13, flexShrink: 0 }}>💬</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', letterSpacing: '0.1em' }}>SESSION NOTE</div>
+                <button onClick={() => { setEditingNote(true); setEditNoteText(session.sessionNote || '') }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'var(--blue)' }}>Edit</button>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text3)', lineHeight: 1.6 }}>{session.sessionNote ? `"${session.sessionNote}"` : 'No note recorded.'}</div>
+            </div>
+          </div>
+        )}
+
+        {session.isRest ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 14, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text4)', letterSpacing: '0.08em' }}>
+            🛌 Rest day logged — recovery in progress
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {groups.map((g, gi) => {
+              const exTonnage = g.sets.filter(s => !s.isWarmup).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0)
+              const maxExTonnage = Math.max(0, ...groups.map(gr => gr.sets.filter(s => !s.isWarmup).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0)))
+              const isHighVol = exTonnage > 0 && exTonnage === maxExTonnage && groups.length > 1
+              const exNotes = Array.from(new Set(g.sets.map(s => s.exNote).filter(Boolean)))
+
+              return (
+                <div key={gi} style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg3)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                      {g.name}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {isHighVol && <span title="Highest Volume Exercise" style={{ fontSize: 12 }}>🏆</span>}
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)' }}>
+                        VOL: {exTonnage > 1000 ? (exTonnage / 1000).toFixed(1) + 't' : Math.round(exTonnage) + 'kg'}
+                      </div>
+                    </div>
+                  </div>
+                  {exNotes.length > 0 && (
+                    <div style={{ padding: '8px 14px', background: 'var(--gold-dim)', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--gold)' }}>
+                      {exNotes.map((note, ni) => (
+                        <div key={ni}>→ {note}</div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ padding: '8px 14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 1fr', gap: 8, marginBottom: 6, fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', paddingBottom: 4, borderBottom: '1px dashed var(--border)' }}>
+                      <div>SET</div>
+                      <div>WEIGHT</div>
+                      <div>REPS</div>
+                      <div>RPE</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {g.sets.map((s, si) => (
+                        <div key={si} style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 1fr', gap: 8, fontFamily: 'var(--font-mono)', fontSize: 11, color: s.isWarmup ? 'rgba(96,165,250,0.8)' : 'var(--text3)' }}>
+                          <div style={{ color: 'var(--text5)' }}>{s.isWarmup ? 'W' : si + 1}</div>
+                          <div>{s.isBodyweight && <span style={{ fontSize: 9, color: 'var(--text5)', marginRight: 2 }}>BW+</span>}{s.weight || 0}kg</div>
+                          <div>{s.reps || 0}</div>
+                          <div style={{ color: 'var(--text5)' }}>{s.rpe ? `@${s.rpe}` : '-'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 function SessionHistory({ pastSessions, onDeleteSession, onEditNote }) {
   const [openId, setOpenId] = useState(null)
   const [editingNoteId, setEditingNoteId] = useState(null)
@@ -224,15 +385,16 @@ function SessionHistory({ pastSessions, onDeleteSession, onEditNote }) {
             totalWorking++
             const name = s.exerciseName.toLowerCase()
             let m = 'Other'
-            if (name.includes('chest') || name.includes('press') || name.includes('push') || name.includes('pec')) m = 'Chest/Push'
-            else if (name.includes('back') || name.includes('row') || name.includes('pull') || name.includes('lat')) m = 'Back/Pull'
+            if (name.includes('chest') || name.includes('press') || name.includes('push') || name.includes('pec')) m = 'Chest'
+            else if (name.includes('back') || name.includes('row') || name.includes('pull') || name.includes('lat')) m = 'Back'
             else if (name.includes('squat') || name.includes('leg') || name.includes('calf') || name.includes('rdl')) m = 'Legs'
             else if (name.includes('lateral') || name.includes('raise') || name.includes('delt')) m = 'Shoulders'
-            else if (name.includes('curl') || name.includes('tri') || name.includes('bi')) m = 'Arms'
+            else if (name.includes('bicep') || name.includes('curl')) m = 'Biceps'
+            else if (name.includes('tricep') || name.includes('ext')) m = 'Triceps'
             else if (name.includes('core') || name.includes('crunch') || name.includes('abs')) m = 'Core'
             muscleCounts[m] = (muscleCounts[m] || 0) + 1
           })
-          const mColors = { 'Chest/Push': '#3b82f6', 'Back/Pull': '#10b981', 'Legs': '#f59e0b', 'Shoulders': '#8b5cf6', 'Arms': '#ec4899', 'Core': '#eab308', 'Other': '#6b7280' }
+          const mColors = { 'Chest': '#3b82f6', 'Back': '#10b981', 'Legs': '#f59e0b', 'Shoulders': '#8b5cf6', 'Biceps': '#ec4899', 'Triceps': '#a855f7', 'Core': '#eab308', 'Other': '#6b7280' }
 
           return (
             <div key={session.id} style={{ borderRadius: 10, border: `1px solid ${isOpen ? 'rgba(232,184,75,0.25)' : 'var(--border)'}`, overflow: 'hidden', background: 'var(--bg2)', transition: 'border-color 0.2s', flexShrink: 0 }}>
@@ -262,7 +424,7 @@ function SessionHistory({ pastSessions, onDeleteSession, onEditNote }) {
                         {totalWorking > 0 && (
                           <div style={{ display: 'flex', height: 4, width: '100%', maxWidth: 120, borderRadius: 2, overflow: 'hidden' }}>
                             {Object.entries(muscleCounts).map(([m, count]) => (
-                              <div key={m} style={{ width: `${(count/totalWorking)*100}%`, background: mColors[m] || mColors.Other, height: '100%' }} title={`${m}: ${count} sets`} />
+                              <div key={m} style={{ width: `${(count / totalWorking) * 100}%`, background: mColors[m] || mColors.Other, height: '100%' }} title={`${m}: ${count} sets`} />
                             ))}
                           </div>
                         )}
@@ -283,106 +445,22 @@ function SessionHistory({ pastSessions, onDeleteSession, onEditNote }) {
                       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text5)', letterSpacing: '0.08em' }}>TONNAGE</div>
                     </>
                   )}
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: isOpen ? 'var(--gold)' : 'var(--text5)', marginTop: 4, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s, color 0.2s' }}>▾</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)', marginTop: 4, transition: 'transform 0.2s, color 0.2s' }}>→</div>
                 </div>
               </div>
-
-              {isOpen && (
-                <div style={{ borderTop: '1px solid var(--border)', padding: 16 }}>
-                  {/* Delete Button */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-                    <button onClick={() => onDeleteSession(session.id)} className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11, color: 'var(--red)', border: '1px solid var(--border)', borderRadius: 4 }}>
-                      🗑️ Delete Session
-                    </button>
-                  </div>
-
-                  {editingNoteId === session.id ? (
-                    <div style={{ marginBottom: 14 }}>
-                      <textarea
-                        value={editNoteText}
-                        onChange={e => setEditNoteText(e.target.value)}
-                        className="form-input"
-                        style={{ width: '100%', minHeight: 60, fontSize: 12, padding: 8, marginBottom: 8 }}
-                      />
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => handleEditSubmit(session)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: 11 }}>Save</button>
-                        <button onClick={() => setEditingNoteId(null)} className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 11 }}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'rgba(96,165,250,0.05)', borderLeft: '2px solid var(--blue)', borderRadius: 6, marginBottom: 14 }}>
-                      <div style={{ fontSize: 13, flexShrink: 0 }}>💬</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text5)', letterSpacing: '0.1em' }}>SESSION NOTE</div>
-                          <button onClick={() => { setEditingNoteId(session.id); setEditNoteText(session.sessionNote || '') }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: 'var(--blue)' }}>Edit</button>
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.6 }}>{session.sessionNote ? `"${session.sessionNote}"` : 'No note recorded.'}</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {session.isRest ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 14, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text4)', letterSpacing: '0.08em' }}>
-                      🛌 Rest day logged — recovery in progress
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {groups.map((g, gi) => {
-                        const exTonnage = g.sets.filter(s => !s.isWarmup).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0)
-                        const maxExTonnage = Math.max(0, ...groups.map(gr => gr.sets.filter(s => !s.isWarmup).reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0)))
-                        const isHighVol = exTonnage > 0 && exTonnage === maxExTonnage && groups.length > 1
-                        const exNotes = Array.from(new Set(g.sets.map(s => s.exNote).filter(Boolean)))
-
-                        return (
-                          <div key={gi} style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', overflow: 'hidden' }}>
-                            <div style={{ padding: '10px 14px', background: 'var(--bg3)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                                {g.name}
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                {isHighVol && <span title="Highest Volume Exercise" style={{ fontSize: 12 }}>🏆</span>}
-                                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text5)' }}>
-                                  VOL: {exTonnage > 1000 ? (exTonnage/1000).toFixed(1) + 't' : Math.round(exTonnage) + 'kg'}
-                                </div>
-                              </div>
-                            </div>
-                            {exNotes.length > 0 && (
-                              <div style={{ padding: '8px 14px', background: 'var(--gold-dim)', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--gold)' }}>
-                                {exNotes.map((note, ni) => (
-                                  <div key={ni}>→ {note}</div>
-                                ))}
-                              </div>
-                            )}
-                            <div style={{ padding: '8px 14px' }}>
-                              <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 1fr', gap: 8, marginBottom: 6, fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text5)', paddingBottom: 4, borderBottom: '1px dashed var(--border)' }}>
-                                <div>SET</div>
-                                <div>WEIGHT</div>
-                                <div>REPS</div>
-                                <div>RPE</div>
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                {g.sets.map((s, si) => (
-                                  <div key={si} style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 1fr', gap: 8, fontFamily: 'var(--font-mono)', fontSize: 11, color: s.isWarmup ? 'rgba(96,165,250,0.8)' : 'var(--text3)' }}>
-                                    <div style={{ color: 'var(--text5)' }}>{s.isWarmup ? 'W' : si + 1}</div>
-                                    <div>{s.isBodyweight && <span style={{ fontSize: 9, color: 'var(--text5)', marginRight: 2 }}>BW+</span>}{s.weight || 0}kg</div>
-                                    <div>{s.reps || 0}</div>
-                                    <div style={{ color: 'var(--text5)' }}>{s.rpe ? `@${s.rpe}` : '-'}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )
         })}
       </div>
+
+      {openId && (
+        <SessionDetailModal
+          session={sorted.find(s => s.id === openId)}
+          onClose={() => setOpenId(null)}
+          onEditNote={onEditNote}
+          onDeleteSession={onDeleteSession}
+        />
+      )}
     </div>
   )
 }
