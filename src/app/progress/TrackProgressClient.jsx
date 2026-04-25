@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { store } from '../../lib/store'
 import { useStore } from '../../lib/useStore'
+import { EXERCISES, MUSCLE_ACCENTS } from '../../data/exercises'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, ReferenceLine, Cell
@@ -253,8 +254,18 @@ function SessionDetailModal({ session, onClose, onEditNote, onDeleteSession }) {
               return (
                 <div key={gi} style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', overflow: 'hidden' }}>
                   <div style={{ padding: '10px 14px', background: 'var(--bg3)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                      {g.name}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {(() => {
+                        const exData = EXERCISES.find(e => e.name === g.name)
+                        const mg = exData?.muscleGroup
+                        const mgColor = mg ? (MUSCLE_ACCENTS[mg] || 'var(--gold)') : null
+                        return mg ? (
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, padding: '2px 7px', borderRadius: 3, background: mgColor + '18', color: mgColor, letterSpacing: '0.06em', textTransform: 'uppercase', border: `1px solid ${mgColor}33` }}>{mg}</span>
+                        ) : null
+                      })()}
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--green)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                        {g.name}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {isHighVol && <span title="Highest Volume Exercise" style={{ fontSize: 12 }}>🏆</span>}

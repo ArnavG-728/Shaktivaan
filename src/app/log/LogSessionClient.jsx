@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import ExerciseSelectorModal from '../../components/ExerciseSelectorModal'
-import { EXERCISES } from '../../data/exercises'
+import { EXERCISES, MUSCLE_ACCENTS } from '../../data/exercises'
 import { store } from '../../lib/store'
 import { useStore, useActiveSession } from '../../lib/useStore'
 import { audioPool } from '../../lib/throttle'
@@ -210,6 +210,9 @@ function ExerciseLogger({ ex, sessionSets, prevSession, pastSessions, accent, on
       <div className="ex-head" onClick={() => setOpen(o => !o)}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+            {ex.muscleGroup && (
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, padding: '2px 7px', borderRadius: 3, background: (MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)') + '18', color: MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)', letterSpacing: '0.06em', textTransform: 'uppercase', border: `1px solid ${(MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)')}33` }}>{ex.muscleGroup}</span>
+            )}
             {ex.badge === 'CUSTOM' ? (
               <span className="badge badge-custom">CUSTOM</span>
             ) : ex.badge ? (
@@ -450,6 +453,7 @@ export default function LogSession() {
       const matched = allExercises.find(e => e.name === exName) || { name: exName }
       return {
         id: genId(), name: matched.name, badge: matched.badge, targets: matched.targets,
+        muscleGroup: matched.muscleGroup,
         cues: matched.cues, emgNote: matched.emgNote, prog: matched.prog, sciNote: matched.sciNote,
         sets: [{ n: 1, reps: matched.repRange || 8, rest: matched.restRange || '90s', kg: '' }]
       }

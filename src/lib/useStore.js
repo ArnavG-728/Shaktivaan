@@ -149,12 +149,11 @@ export function useActiveSession() {
  * @returns {{ theme: string, toggleTheme: Function }}
  */
 export function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'dark'
-    return store.settings.getTheme()
-  })
+  const [theme, setTheme] = useState('dark')
 
   useEffect(() => {
+    // Hydrate theme on mount
+    setTheme(store.settings.getTheme())
     const unsub = eventBus.on('theme:changed', (newTheme) => {
       setTheme(newTheme)
     })

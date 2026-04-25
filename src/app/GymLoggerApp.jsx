@@ -33,7 +33,10 @@ export default function GymLoggerApp() {
 
   // Defer date rendering to client to prevent hydration mismatch
   const [dateStr, setDateStr] = useState('')
+  const [mounted, setMounted] = useState(false)
+  
   useEffect(() => {
+    setMounted(true)
     setDateStr(new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase())
   }, [])
 
@@ -59,7 +62,7 @@ export default function GymLoggerApp() {
           <div>
             <h1>SHAKTIVAAN</h1>
             <div className="header-date">
-              {dateStr} · YOUR SCIENCE BACKED GYM LOGGER
+              {mounted && dateStr ? `${dateStr} · ` : ''}YOUR SCIENCE BACKED GYM LOGGER
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

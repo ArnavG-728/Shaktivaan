@@ -27,8 +27,10 @@ import { PRELOADED_PLANS } from '../data/plans/index'
 
 const cache = new Map()
 
+let isHydrated = false
+
 function getCached(key, fallback) {
-  if (typeof window === 'undefined') return fallback
+  if (typeof window === 'undefined' || !isHydrated) return fallback
   if (cache.has(key)) return cache.get(key)
   const value = safeRead(key, fallback)
   cache.set(key, value)
@@ -310,7 +312,7 @@ const settings = {
  */
 function init() {
   if (typeof window === 'undefined') return // SSR guard
-
+  isHydrated = true
   runMigrations()
 
   // Warm the cache by reading all domains
