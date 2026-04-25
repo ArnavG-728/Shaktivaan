@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { store } from '../../lib/store'
+import { useStore } from '../../lib/useStore'
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, ReferenceLine, Cell
@@ -466,28 +468,18 @@ function SessionHistory({ pastSessions, onDeleteSession, onEditNote }) {
 }
 
 export default function TrackProgress() {
-  const [sessions, setSessions] = useState([])
+  const sessions = useStore('sessions')
   const [activeEx, setActiveEx] = useState('')
   const [expandSession, setExpandSession] = useState(null)
 
   const handleDeleteSession = (id) => {
     if (!confirm('Are you sure you want to delete this session? This action cannot be undone.')) return
-    const newSessions = sessions.filter(s => s.id !== id)
-    setSessions(newSessions)
-    localStorage.setItem('gymlogger_sessions', JSON.stringify(newSessions))
+    store.sessions.delete(id)
   }
 
   const handleEditNote = (id, newNote) => {
-    const newSessions = sessions.map(s => s.id === id ? { ...s, sessionNote: newNote } : s)
-    setSessions(newSessions)
-    localStorage.setItem('gymlogger_sessions', JSON.stringify(newSessions))
+    store.sessions.update(id, { sessionNote: newNote })
   }
-
-  useEffect(() => {
-    try {
-      setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
-    } catch { }
-  }, [])
 
   // All unique exercise names from history
   const exerciseNames = useMemo(() => {

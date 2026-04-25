@@ -6,6 +6,9 @@ import TrackProgress from './progress/TrackProgressClient'
 import LogSession from './log/LogSessionClient'
 import Science from './science/ScienceClient'
 import Tools from './tools/ToolsClient'
+import { useStoreInit, useStore, useTheme, useDerivedStore } from '../lib/useStore'
+import { computeStreak } from '../lib/computeCache'
+import { store } from '../lib/store'
 
 const TABS = [
   { id: 'plan',      label: 'My Plan',       icon: '📋', accent: '--gold' },
@@ -16,42 +19,27 @@ const TABS = [
   { id: 'science',   label: 'Science',        icon: '🔬', accent: '--purple' },
 ]
 
-function computeStreak(sessions) {
-  if (!sessions || sessions.length === 0) return 0
-  const today = new Date(); today.setHours(0,0,0,0)
-  const sorted = [...sessions].sort((a, b) => new Date(b.date) - new Date(a.date))
-  let streak = 0, check = today
-  for (const s of sorted) {
-    const d = new Date(s.date); d.setHours(0,0,0,0)
-    const diff = (check - d) / 86400000
-    if (diff <= 1) { streak++; check = d }
-    else break
-  }
-  return streak
-}
-
 export default function GymLoggerApp() {
-  const [tab, setTab] = useState('plan')
-  const [sessions, setSessions] = useState([])
-  const [theme, setTheme] = useState('dark')
+  // Initialise the centralised store on mount (runs migrations, warms caches)
+  useStoreInit()
 
+  const [tab, setTab] = useState('plan')
+
+  // Reactive data from the store — auto-updates when sessions change anywhere
+  const sessions = useStore('sessions')
+
+  // Theme with toggle — syncs across components via event bus
+  const { theme, toggleTheme } = useTheme()
+
+  // Defer date rendering to client to prevent hydration mismatch
+  const [dateStr, setDateStr] = useState('')
   useEffect(() => {
-    try {
-      setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
-      const saved = localStorage.getItem('gymlogger_theme') || 'dark'
-      setTheme(saved)
-      document.documentElement.dataset.theme = saved === 'light' ? 'light' : ''
-    } catch {}
+    setDateStr(new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase())
   }, [])
 
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    document.documentElement.dataset.theme = next === 'light' ? 'light' : ''
-    try { localStorage.setItem('gymlogger_theme', next) } catch {}
-  }
+  // Cached computations — only recomputed when sessions data actually changes
+  const streak = useDerivedStore('streak', ['sessions'], () => computeStreak(store.sessions.getAll()))
 
-  const streak = computeStreak(sessions)
   const totalSessions = sessions.length
   const thisWeek = sessions.filter(s => {
     const d = new Date(s.date)
@@ -71,7 +59,7 @@ export default function GymLoggerApp() {
           <div>
             <h1>SHAKTIVAAN</h1>
             <div className="header-date">
-              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()} · YOUR SCIENCE BACKED GYM LOGGER
+              {dateStr} · YOUR SCIENCE BACKED GYM LOGGER
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -118,9 +106,7 @@ export default function GymLoggerApp() {
           {tab === 'plan'      && <MyPlan />}
           {tab === 'exercises' && <ExerciseList />}
           {tab === 'progress'  && <TrackProgress />}
-          {tab === 'log'       && <LogSession onSessionSaved={() => {
-            try { setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')) } catch {}
-          }} />}
+          {tab === 'log'       && <LogSession />}
           {tab === 'tools'     && <Tools />}
           {tab === 'science'   && <Science />}
         </div>

@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom'
 import { PRELOADED_PLANS } from '../../data/plans/index'
 import { EXERCISES, MUSCLE_ACCENTS, MUSCLE_GROUPS } from '../../data/exercises'
 import ExerciseSelectorModal from '../../components/ExerciseSelectorModal'
+import { store } from '../../lib/store'
+import { useStore } from '../../lib/useStore'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
 
@@ -340,61 +342,29 @@ function PlanEditor({ initialPlan, allExercises, onSave, onClose }) {
 }
 
 export default function MyPlan() {
-  const [plans, setPlans] = useState([])
+  const plans = useStore('plans')
   const [allExercises, setAllExercises] = useState(EXERCISES)
   
   const [editingPlan, setEditingPlan] = useState(null) // null | Plan object
   const [viewDetail, setViewDetail] = useState(null) // { planId, dayKey }
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('gymlogger_plans'))
-      if (stored && stored.length > 0) {
-        const merged = stored.map(s => {
-          const preloaded = PRELOADED_PLANS.find(p => p.id === s.id)
-          return preloaded ? { ...preloaded, isStarred: s.isStarred } : s
-        })
-        
-        let changed = false
-        for (const p of PRELOADED_PLANS) {
-          if (!merged.find(m => m.id === p.id)) {
-            merged.push(p)
-            changed = true
-          }
-        }
-        
-        setPlans(merged)
-        localStorage.setItem('gymlogger_plans', JSON.stringify(merged))
-      } else { 
-        setPlans(PRELOADED_PLANS); 
-        localStorage.setItem('gymlogger_plans', JSON.stringify(PRELOADED_PLANS)) 
-      }
-      
-      setAllExercises([...EXERCISES].sort((a,b) => a.name.localeCompare(b.name)))
-    } catch {
-      setPlans(PRELOADED_PLANS)
-    }
-  }, [])
-
-  const savePlans = useCallback((updatedPlans) => {
-    setPlans(updatedPlans)
-    localStorage.setItem('gymlogger_plans', JSON.stringify(updatedPlans))
+    setAllExercises(store.customExercises.getAllMerged())
   }, [])
 
   const deletePlan = (id) => {
     if (!confirm('Delete this plan entirely?')) return
-    savePlans(plans.filter(p => p.id !== id))
+    store.plans.delete(id)
   }
 
   const handleSavePlan = (planData) => {
-    const existingIdx = plans.findIndex(p => p.id === planData.id)
-    if (existingIdx >= 0) savePlans(plans.map(p => p.id === planData.id ? planData : p))
-    else savePlans([...plans, planData])
+    store.plans.save(planData)
     setEditingPlan(null)
   }
 
   const toggleStar = (id) => {
-    savePlans(plans.map(p => p.id === id ? { ...p, isStarred: !p.isStarred } : p))
+    const plan = plans.find(p => p.id === id)
+    if (plan) store.plans.save({ ...plan, isStarred: !plan.isStarred })
   }
 
   const sortedPlans = [...plans].sort((a, b) => {

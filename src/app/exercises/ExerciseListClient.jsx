@@ -2,6 +2,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { EXERCISES, MUSCLE_GROUPS, MUSCLE_ACCENTS } from '../../data/exercises'
+import { store } from '../../lib/store'
+import { useStore } from '../../lib/useStore'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
 
@@ -275,14 +277,10 @@ function CreateCustomModal({ initialData, onSave, onClose }) {
 export default function ExerciseList() {
   const [allExercises, setAllExercises] = useState([...EXERCISES])
   
-  const [pastSessions, setPastSessions] = useState([])
+  const sessions = useStore('sessions')
 
   useEffect(() => {
-    try {
-      const customEx = JSON.parse(localStorage.getItem('gymlogger_custom_exercises') || '[]')
-      setAllExercises([...EXERCISES, ...customEx].sort((a,b) => a.name.localeCompare(b.name)))
-      setPastSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
-    } catch {}
+    setAllExercises(store.customExercises.getAllMerged())
   }, [])
 
   const [search, setSearch] = useState('')
@@ -294,38 +292,15 @@ export default function ExerciseList() {
   const [activeEmgs, setActiveEmgs] = useState([])
 
   const handleSaveCustom = async (newEx) => {
-    const isEdit = allExercises.some(e => e.id === newEx.id)
-    const customOnly = allExercises.filter(e => e.badge === 'CUSTOM')
-    
-    let updatedCustom
-    if (isEdit) updatedCustom = customOnly.map(c => c.id === newEx.id ? newEx : c)
-    else updatedCustom = [...customOnly, newEx]
-    
-    // Optimistic UI update
-    setAllExercises(prev => {
-      const builtins = prev.filter(e => e.badge !== 'CUSTOM')
-      return [...builtins, ...updatedCustom].sort((a,b) => a.name.localeCompare(b.name))
-    })
-    
+    store.customExercises.save(newEx)
+    setAllExercises(store.customExercises.getAllMerged())
     setEditingEx(null)
-
-    // Save directly to localStorage!
-    try {
-      localStorage.setItem('gymlogger_custom_exercises', JSON.stringify(updatedCustom))
-    } catch {}
   }
 
   const handleDeleteCustom = async (exId) => {
     if (!confirm('Permanently delete this custom exercise?')) return
-    const customOnly = allExercises.filter(e => e.badge === 'CUSTOM' && e.id !== exId)
-    
-    // Optimistic UI update
-    setAllExercises(prev => prev.filter(e => e.id !== exId))
-    
-    // Save directly to localStorage!
-    try {
-      localStorage.setItem('gymlogger_custom_exercises', JSON.stringify(customOnly))
-    } catch {}
+    store.customExercises.delete(exId)
+    setAllExercises(store.customExercises.getAllMerged())
   }
 
   const totalActive = activeMuscles.length + activeTypes.length + activeEmgs.length
@@ -404,7 +379,7 @@ export default function ExerciseList() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {grouped[group].map((ex, i) => (
-                  <ExerciseCard key={ex.id || i} ex={ex} accent={MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)'} onEdit={setEditingEx} onDelete={handleDeleteCustom} pastSessions={pastSessions} />
+                  <ExerciseCard key={ex.id || i} ex={ex} accent={MUSCLE_ACCENTS[ex.muscleGroup] || 'var(--gold)'} onEdit={setEditingEx} onDelete={handleDeleteCustom} pastSessions={sessions} />
                 ))}
               </div>
             </div>

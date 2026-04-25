@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
+import { store } from '../../lib/store'
+import { useStore } from '../../lib/useStore'
 
 // ── Plate Calculator ────────────────────────────────────────────────────────
 const STANDARD_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25]
@@ -86,26 +88,21 @@ function BodyweightLog() {
   const [note, setNote] = useState('')
 
   useEffect(() => {
-    try { setEntries(JSON.parse(localStorage.getItem('gymlogger_bodyweight') || '[]')) } catch {}
+    setEntries(store.bodyweight.getAll())
   }, [])
-
-  const save = (data) => {
-    localStorage.setItem('gymlogger_bodyweight', JSON.stringify(data))
-    setEntries(data)
-  }
 
   const addEntry = () => {
     const w = parseFloat(weight)
     if (!w) return
     const entry = { date: new Date().toISOString(), weight: w, note }
-    const updated = [entry, ...entries]
-    save(updated)
+    store.bodyweight.add(entry)
+    setEntries(store.bodyweight.getAll())
     setWeight(''); setNote('')
   }
 
   const deleteEntry = (i) => {
-    const updated = entries.filter((_, idx) => idx !== i)
-    save(updated)
+    store.bodyweight.delete(i)
+    setEntries(store.bodyweight.getAll())
   }
 
   const trend = useMemo(() => {
@@ -417,16 +414,12 @@ function ExportCSV({ sessions, bodyweightEntries }) {
 
 // ── Main Tools Client ────────────────────────────────────────────────────────
 export default function ToolsClient() {
-  const [sessions, setSessions] = useState([])
-  const [plans, setPlans] = useState([])
+  const sessions = useStore('sessions')
+  const plans = useStore('plans')
   const [bodyweightEntries, setBodyweightEntries] = useState([])
 
   useEffect(() => {
-    try {
-      setSessions(JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]'))
-      setPlans(JSON.parse(localStorage.getItem('gymlogger_plans') || '[]'))
-      setBodyweightEntries(JSON.parse(localStorage.getItem('gymlogger_bodyweight') || '[]'))
-    } catch {}
+    setBodyweightEntries(store.bodyweight.getAll())
   }, [])
 
   return (

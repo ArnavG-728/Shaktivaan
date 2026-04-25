@@ -3,6 +3,9 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import ExerciseSelectorModal from '../../components/ExerciseSelectorModal'
 import { EXERCISES } from '../../data/exercises'
+import { store } from '../../lib/store'
+import { useStore, useActiveSession } from '../../lib/useStore'
+import { audioPool } from '../../lib/throttle'
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2) }
 
@@ -19,16 +22,7 @@ function parseRest(restStr) {
 }
 
 function playBeep(freq = 880, duration = 0.18, vol = 0.4) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain); gain.connect(ctx.destination)
-    osc.frequency.value = freq; osc.type = 'sine'
-    gain.gain.setValueAtTime(vol, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + duration)
-  } catch { }
+  audioPool.play(freq, duration, vol)
 }
 
 function vibrateIfAvailable(pattern = [100, 50, 100]) {
@@ -324,7 +318,7 @@ function PlanDaySelector({ plans, onSelect, onRestDay, initialPlanIdx = 0 }) {
   )
 }
 
-export default function LogSession({ onSessionSaved }) {
+export default function LogSession() {
   const [phase, setPhase] = useState('select') // select, recovery, active, done
   const [sessionMode, setSessionMode] = useState('live') // live, past
   const [sessionDate, setSessionDate] = useState(() => new Date().toISOString().split('T')[0])
@@ -350,36 +344,30 @@ export default function LogSession({ onSessionSaved }) {
 
   // ── Persistence ──────────────────────────────────────────────────────────
   useEffect(() => {
-    try {
-      const storedPlans = JSON.parse(localStorage.getItem('gymlogger_plans') || '[]')
-      setPlans(storedPlans)
-      const customEx = JSON.parse(localStorage.getItem('gymlogger_custom_exercises') || '[]')
-      setAllExercises([...EXERCISES, ...customEx].sort((a, b) => a.name.localeCompare(b.name)))
-    } catch { }
+    setPlans(store.plans.getAll())
+    setAllExercises(store.customExercises.getAllMerged())
   }, [])
 
   // Load active session on mount
   useEffect(() => {
-    try {
-      const storedSessions = JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')
-      setPastSessions(storedSessions)
-      
-      const storedPlans = JSON.parse(localStorage.getItem('gymlogger_plans') || '[]')
-      if (storedSessions.length > 0 && storedPlans.length > 0) {
-        const sortedSessions = [...storedSessions].sort((a, b) => new Date(b.date) - new Date(a.date))
-        const lastPlanId = sortedSessions[0]?.planId
-        if (lastPlanId) {
-          const idx = storedPlans.findIndex(p => p.id === lastPlanId)
-          if (idx !== -1) setInitialPlanIdx(idx)
-        }
+    const storedSessions = store.sessions.getAll()
+    setPastSessions(storedSessions)
+    
+    const storedPlans = store.plans.getAll()
+    if (storedSessions.length > 0 && storedPlans.length > 0) {
+      const sortedSessions = [...storedSessions].sort((a, b) => new Date(b.date) - new Date(a.date))
+      const lastPlanId = sortedSessions[0]?.planId
+      if (lastPlanId) {
+        const idx = storedPlans.findIndex(p => p.id === lastPlanId)
+        if (idx !== -1) setInitialPlanIdx(idx)
       }
+    }
 
-      const active = JSON.parse(localStorage.getItem('gymlogger_active_session'))
-      if (active && active.phase === 'active' && active.sessionSets?.length > 0) {
-        setRecoverySession(active)
-        setPhase('recovery')
-      }
-    } catch { }
+    const active = store.activeSession.get()
+    if (active && active.phase === 'active' && active.sessionSets?.length > 0) {
+      setRecoverySession(active)
+      setPhase('recovery')
+    }
   }, [])
 
   const resumeSession = () => {
@@ -401,17 +389,17 @@ export default function LogSession({ onSessionSaved }) {
   }
 
   const discardSession = () => {
-    try { localStorage.removeItem('gymlogger_active_session') } catch { }
+    store.activeSession.clear()
     setRecoverySession(null)
     setPhase('select')
   }
 
-  // Save active session on change
+  // Save active session on change (debounced through write queue)
   useEffect(() => {
     if (phase === 'active') {
-      try { localStorage.setItem('gymlogger_active_session', JSON.stringify({ phase, sessionMode, sessionDate, selectedPlan, selectedDay, sessionSets, startTime, sessionNote })) } catch { }
+      store.activeSession.save({ phase, sessionMode, sessionDate, selectedPlan, selectedDay, sessionSets, startTime, sessionNote })
     } else if (phase === 'done' || phase === 'select') {
-      try { localStorage.removeItem('gymlogger_active_session') } catch { }
+      store.activeSession.clear()
     }
   }, [phase, sessionMode, sessionDate, selectedPlan, selectedDay, sessionSets, startTime, sessionNote])
 
@@ -426,10 +414,8 @@ export default function LogSession({ onSessionSaved }) {
   // ── Actions ──────────────────────────────────────────────────────────────
   const handleSelectDay = useCallback((plan, day) => {
     setSelectedPlan(plan); setSelectedDay(day)
-    try {
-      const prev = JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]').filter(s => s.planId === plan.id && s.dayLabel === day.label).sort((a, b) => new Date(b.date) - new Date(a.date))[0]
-      setPrevSession(prev || null)
-    } catch { }
+    const prev = store.sessions.getAll().filter(s => s.planId === plan.id && s.dayLabel === day.label).sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+    setPrevSession(prev || null)
     setPhase('active'); setStartTime(Date.now()); setSessionSets([]); setSessionNote('')
   }, [])
 
@@ -440,13 +426,9 @@ export default function LogSession({ onSessionSaved }) {
       baseDate = new Date(y, m - 1, d, 12, 0, 0)
     }
     const session = { id: genId(), date: baseDate.toISOString(), planId: 'rest', dayLabel: 'Rest Day', isRest: true, duration: 0, totalTonnage: 0, sets: [], sessionNote: 'Taking a clear rest day.' }
-    try {
-      const existing = JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')
-      localStorage.setItem('gymlogger_sessions', JSON.stringify([...existing, session]))
-    } catch { }
-    onSessionSaved?.()
+    store.sessions.add(session)
     setPhase('done')
-  }, [onSessionSaved])
+  }, [])
 
   const handleCopyLastSession = useCallback(() => {
     if (!prevSession || !confirm('Copy all weights & reps from your last session?')) return
@@ -527,16 +509,12 @@ export default function LogSession({ onSessionSaved }) {
     }
 
     const session = { id: genId(), date: baseDate.toISOString(), planId: selectedPlan.id, dayLabel: selectedDay.label, duration, totalTonnage, sets: doneSets, sessionNote }
-    try {
-      const existing = JSON.parse(localStorage.getItem('gymlogger_sessions') || '[]')
-      localStorage.setItem('gymlogger_sessions', JSON.stringify([...existing, session]))
-      localStorage.removeItem('gymlogger_active_session')
-    } catch { }
+    store.sessions.add(session)
+    store.activeSession.clear()
 
     clearInterval(timerRef.current)
     setPhase('done')
-    onSessionSaved?.()
-  }, [sessionSets, startTime, selectedPlan, selectedDay, sessionNote, onSessionSaved])
+  }, [sessionSets, startTime, selectedPlan, selectedDay, sessionNote])
 
   const formatElapsed = (ms) => {
     const m = Math.floor(ms / 60000); const s = Math.floor((ms % 60000) / 1000)
@@ -716,7 +694,7 @@ export default function LogSession({ onSessionSaved }) {
           </div>
 
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
-            <button className="btn btn-outline" onClick={() => { if (confirm('Cancel session? Progress will be lost.')) { setPhase('select'); setSessionSets([]); localStorage.removeItem('gymlogger_active_session'); clearInterval(timerRef.current) } }}>
+            <button className="btn btn-outline" onClick={() => { if (confirm('Cancel session? Progress will be lost.')) { setPhase('select'); setSessionSets([]); store.activeSession.clear(); clearInterval(timerRef.current) } }}>
               Cancel
             </button>
             <button className="btn btn-primary" style={{ flex: 1, background: 'var(--green)', justifyContent: 'center', fontSize: 16 }} onClick={handleFinish}>
